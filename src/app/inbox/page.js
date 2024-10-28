@@ -23,11 +23,14 @@ import {
   faListOl,
   faLink,
   faSort,
+  faList,
+  faFont,
 } from "@fortawesome/free-solid-svg-icons";
-
 
 export default function Inbox() {
   const [customers, setCustomers] = useState([]);
+  const [orders, setOrders] = useState([]);
+  const [customerAttribute, setCustomerAttribute] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedOrders, setSelectedOrders] = useState(null);
@@ -55,7 +58,7 @@ export default function Inbox() {
   const fetchCustomers = async () => {
     try {
       setLoading(true);
-      const response = await fetch("http://localhost:5000/api/customers", {
+      const response = await fetch("http://localhost:5004/api/CustomerList/1", {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -84,24 +87,103 @@ export default function Inbox() {
     }
   };
 
+  // Fetch orders data when a customer is selected
+  const fetchOrders = async (customerId) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `http://localhost:5004/api/OrderSummary/${customerId}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch orders");
+      }
+
+      const result = await response.json();
+
+      console.log("Orders data:", result); // Log the response for debugging
+
+      // Check if 'data' is an array, if not, convert it to an array
+      // const ordersArray = Array.isArray(result.data)
+      //   ? result.data
+      //   : [result.data];
+      // setOrders(ordersArray);
+      const ordersArray = result.data?.orderData || [];
+      setOrders(ordersArray);
+      // const customerAttributesArray = result.data?.customerData || [];
+      // setCustomerAttribute(customerAttributesArray);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Fetch customer data when a customer is selected
+  const fetchCustomerAttribute = async (Id) => {
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `http://localhost:5004/api/CustomerDetails/${Id}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+        }
+      );
+
+      if (!response.ok) {
+        throw new Error("Failed to fetch orders");
+      }
+
+      const result = await response.json();
+
+      console.log("Customers Attributes data:", result); // Log the response for debugging
+
+      // Check if 'data' is an array, if not, convert it to an array
+      // const ordersArray = Array.isArray(result.data)
+      const customerAttributesArray = result.data || [];
+      setCustomerAttribute(customerAttributesArray);
+    } catch (error) {
+      console.error("Error fetching orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchCustomers(); // Fetch customers on component mount
   }, []);
 
+  const handleCustomerClick = (customer) => {
+    setSelectedCustomer(customer);
+    fetchOrders(customer.CustomerId); // Fetch orders when a customer is selected
+    fetchCustomerAttribute(customer.Id)
+  };
+
   return (
     <div className="flex flex-grow flex-col">
       {/* Top Bar with Customers and Profile Overview */}
-      <div className="flex justify-between items-center p-1 mt-4 ml-2">
+      <div className="flex justify-between items-center p-1 mt-4 ml-4">
         <div>
           <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="text-green-800 text-sm">Profile Overview</p>
+          <p className="text-[#37e691] text-base">Profile Overview</p>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="flex flex-grow space-x-4 p-2 px-4">
         {/* Left Sidebar */}
-        <div className="bg-white w-1/5 p-6 rounded-lg shadow-lg">
+        <div className="bg-white w-1/4 overflow-scroll h-[90vh] p-6 rounded-lg shadow-lg">
           {/* Search Conversation Card */}
           <div className="bg-gray-100 p-4 rounded-sm shadow-md mb-6">
             <div className="relative">
@@ -139,6 +221,7 @@ export default function Inbox() {
                 </span>
               </div>
             </div>
+            <div></div>
             {/* Conditionally render spinner or customer data */}
             {loading ? (
               <div className="flex justify-center items-center">
@@ -150,22 +233,22 @@ export default function Inbox() {
                 <div
                   key={index}
                   className="bg-gray-100 p-4 shadow rounded mb-6 cursor-pointer"
-                  onClick={() => setSelectedCustomer(customer)}
+                  onClick={() => handleCustomerClick(customer)}
                 >
                   <div className="flex items-center">
                     <div className="w-12 h-12">
                       <FontAwesomeIcon icon={faUser} size="lg" />
                     </div>
 
-                    <div className="ml-4">
-                      <h2 className="font-bold">
-                        {customer.first_name} {customer.last_name}
+                    <div className="ml-4 mr-2 flex-wrap">
+                      <h2 className="font-semibold">
+                        {customer.FirstName} {customer.LastName}
                       </h2>
-                      <p className="text-[0.9rem] text-gray-500 mb-1">
-                        {customer.email}
+                      <p className="text-[0.5rem] text-gray-500 mb-1 text-wr">
+                        {customer.EmailId}
                       </p>
-                      <p className="text-[0.75rem] text-gray-500">
-                        {customer.first_name} is a long-time customer with a
+                      <p className="text-[0.65rem] text-gray-500">
+                        {customer.FirstName} is a long-time customer with a
                         history of high-value purchases.
                       </p>
                     </div>
@@ -177,7 +260,7 @@ export default function Inbox() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-grow p-6 bg-white rounded-lg h-[90vh] shadow-lg relative">
+        <div className="flex-grow p-6 w-1/2 bg-white rounded-lg h-[90vh] shadow-lg relative">
           <div className="flex justify-between mb-4">
             <select
               className="text-pink-500 cursor-pointer bg-white border-2 border-pink-500 px-2 py-1 focus:outline-none rounded-sm text-sm font-semibold"
@@ -305,14 +388,19 @@ export default function Inbox() {
                 className="w-full px-3 py-1 h-32 bg-customYellow border-none outline-none resize-none"
               ></textarea>
               <div className="flex justify-between items-center mt-2">
-                <div className="flex space-x-2 text-gray-600">
-                  <i className="fas fa-font"></i>
-                  <i className="fas fa-underline"></i>
+                <div className="flex space-x-3 ml-2 text-gray-600">
+                  <FontAwesomeIcon icon={faFont} size="md" />
+                  <FontAwesomeIcon icon={faUnderline} size="md" />
+                  <FontAwesomeIcon icon={faBold} size="md" />
+                  <FontAwesomeIcon icon={faItalic} size="md" />
+                  <FontAwesomeIcon icon={faList} size="md" />
+
+                  {/* <i className="fas fa-underline"></i>
                   <i className="fas fa-bold"></i>
                   <i className="fas fa-italic"></i>
                   <i className="fas fa-list"></i>
                   <i className="fas fa-align-left"></i>
-                  <i className="fas fa-undo"></i>
+                  <i className="fas fa-undo"></i> */}
                 </div>
                 <div className="flex space-x-2 p-2">
                   <button
@@ -331,15 +419,15 @@ export default function Inbox() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-2/11 overflow-scroll h-[90vh]">
+        <div className="w-1/5 overflow-scroll h-[90vh]">
           {" "}
           {/* Ensure full height for scrolling */}
-          {selectedCustomer ? (
+          {customerAttribute ? (
             <div className="mb-6 p-4 rounded-lg shadow-lg bg-white sticky top-0 z-10">
               {/* Display selected customer details */}
               <div className="flex justify-start items-center mb-4">
                 <h2 className="text-blue-600 text-lg font-bold">
-                  {selectedCustomer.first_name} {selectedCustomer.last_name}
+                  {customerAttribute.FirstName} {selectedCustomer?.LastName}
                 </h2>
 
                 <div className="flex space-x-2 ml-3">
@@ -357,7 +445,7 @@ export default function Inbox() {
                   <span className="w-4 h-4 mr-2 text-gray-600">
                     <FontAwesomeIcon icon={faEnvelope} size="sm" />
                   </span>
-                  <p className="text-sm pt-1">{selectedCustomer.email}</p>
+                  <p className="text-sm pt-1">{customerAttribute.EmailId}</p>
                 </div>
 
                 <div className="flex items-center">
@@ -365,7 +453,7 @@ export default function Inbox() {
                     <FontAwesomeIcon icon={faPhone} size="sm" />
                   </span>
                   <p className="text-sm pt-1">
-                    {selectedCustomer.phone || "N/A"}
+                    {customerAttribute.Phone || "N/A"}
                   </p>
                 </div>
 
@@ -374,7 +462,7 @@ export default function Inbox() {
                     <FontAwesomeIcon icon={faMoneyBill} size="sm" />
                   </span>
                   <p className="text-sm pt-1">
-                    Total Spent: ${selectedCustomer.total_spent || "0"}
+                    Total Spent: ${customerAttribute.TotalOrderValue || "0"}
                   </p>
                 </div>
               </div>
@@ -383,54 +471,64 @@ export default function Inbox() {
             <p className="text-gray-500">Select a customer to view details</p>
           )}
           {/* Middle Card: Attributes */}
-          <div className="mb-6 p-4 rounded-lg shadow-lg bg-white">
-            <h3 className="font-bold text-gray-600 mb-1 pl-1">Attributes</h3>
-            {/* Search Box */}
-            <input
-              type="text"
-              placeholder="Type here"
-              className="w-full h-7 p-2 mb-3 text-sm border rounded-sm border-gray-300 focus:outline-none"
-            />
-            {/* Attributes List */}
-            <div className="space-y-2 text-sm pl-2 pr-2 text-left">
-              <div className="flex justify-between">
-                <p>Email Status:</p>
-                <p>Subscribed</p>
-              </div>
-              <div className="flex justify-between">
-                <p>First Seen:</p>
-                <p>2022-05-15</p>
-              </div>
-              <div className="flex justify-between">
-                <p>Signed Up:</p>
-                <p>2022-05-01</p>
-              </div>
-              <div className="flex justify-between">
-                <p>First Contacted:</p>
-                <p>2022-05-10</p>
-              </div>
-              <div className="flex justify-between">
-                <p>Last Contacted:</p>
-                <p>2022-09-18</p>
-              </div>
-              <div className="flex justify-between">
-                <p>First Order Placed:</p>
-                <p>2022-06-01</p>
-              </div>
-              <div className="flex justify-between">
-                <p>Last Order Placed:</p>
-                <p>2022-09-15</p>
-              </div>
-              <div className="flex justify-between">
-                <p>Total Order Value:</p>
-                <p>$10,000</p>
-              </div>
-              <div className="flex justify-between">
-                <p>Total Order Quantity:</p>
-                <p>5</p>
+          {customerAttribute ? (
+            <div className="mb-6 p-4 rounded-lg shadow-lg bg-white">
+              <h3 className="font-bold text-gray-600 mb-1 pl-1">Attributes</h3>
+              {/* Search Box */}
+              <input
+                type="text"
+                placeholder="Type here"
+                className="w-full h-7 p-2 mb-3 text-sm border rounded-sm border-gray-300 focus:outline-none"
+              />
+              {/* Attributes List */}
+              <div className="space-y-2 text-sm pl-2 pr-2 text-left">
+                <div className="flex justify-between">
+                  <p>Email Status:</p>
+                  <p>{customerAttribute.EmailStatus}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>First Seen:</p>
+                  <p>{customerAttribute.FirstSeenDate}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>Signed Up:</p>
+                  <p>{customerAttribute.SignedUp}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>First Contacted:</p>
+                  <p>
+                    {/* {selectedCustomer.date_created || "N/A"} */}
+                  {/* {new Date(selectedCustomer.date_created).toLocaleDateString()} */}
+                  {customerAttribute.FirstContacted}
+                  </p>
+                </div>
+                <div className="flex justify-between">
+                  <p>Last Contacted:</p>
+                  <p>{customerAttribute.FirstContacted}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>First Order Placed:</p>
+                  <p>{customerAttribute.FirstOrderPlaced}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>Last Order Placed:</p>
+                  <p>{customerAttribute.LastOrderPlaced}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>Total Order Value:</p>
+                  <p>{customerAttribute.TotalOrderValue}</p>
+                </div>
+                <div className="flex justify-between">
+                  <p>Total Order Quantity:</p>
+                  <p>{customerAttribute.TotalOrderQuantity}</p>
+                </div>
               </div>
             </div>
-          </div>
+          ) : (
+            <p className="text-gray-500">
+              Select a customer to view Attributes
+            </p>
+          )}
           {/* Bottom Card: Order Summary */}
           <div className="p-4 rounded-lg shadow-lg bg-white">
             <h3 className="font-bold text-gray-600 mb-1 pl-1">Order Summary</h3>
@@ -459,27 +557,31 @@ export default function Inbox() {
                 <p>Status</p>
               </div>
               {/* Rows */}
-              <div className="grid grid-cols-3 gap-4 mb-1 border-t border-gray-300">
-                <p className="p-2 bg-white">2023-09-20</p>
-                <p className="p-2 bg-white">#101</p>
-                <p className="p-2 bg-white text-green-600 font-semibold">
-                  Completed
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-4 mb-1 border-t border-gray-300">
-                <p className="p-2 bg-white">2023-09-18</p>
-                <p className="p-2 bg-white">#102</p>
-                <p className="p-2 bg-white text-yellow-500 font-semibold">
-                  Processing
-                </p>
-              </div>
-              <div className="grid grid-cols-3 gap-4 border-t border-gray-300">
-                <p className="p-2 bg-white">2023-09-16</p>
-                <p className="p-2 bg-white">#103</p>
-                <p className="p-2 bg-white text-red-500 font-semibold">
-                  Shipped
-                </p>
-              </div>
+              {/* Map over orders to display rows */}
+              {orders.length > 0 ? (
+                orders.map((order, index) => (
+                  <div
+                    key={index}
+                    className="grid grid-cols-3 gap-2 mb-1 border-t border-gray-300"
+                  >
+                    <p className="p-1 bg-white">
+                    {order?.date_created ? new Date(order.date_created).toLocaleDateString() : 'N/A'}
+                    </p>
+                    <p className="p-1 bg-white text-center">#{order?.id}</p>
+                    <p
+                      className={`p-1 mr-1 text-[0.8rem] bg-white font-semibold leading-tight ${
+                        order?.status === "Completed"
+                          ? "text-green-600"
+                          : "text-yellow-600"
+                      }`}
+                    >
+                      {order?.status}
+                    </p>
+                  </div>
+                ))
+              ) : (
+                <div className="p-2 text-gray-500">No orders found</div>
+              )}
             </div>
           </div>
           {/* Recent Activity Card */}
@@ -544,7 +646,7 @@ export default function Inbox() {
                       {item.date}
                     </div>
                     <div
-                      className="flex-1 h-8  px-6 rounded-md flex items-center justify-center text-gray-500 font-medium"
+                      className="flex-1 h-8  px-6 rounded-md flex items-center justify-center text-xs text-gray-500 font-medium"
                       style={{ backgroundColor: item.color }}
                     >
                       {item.activity}

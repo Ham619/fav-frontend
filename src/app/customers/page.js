@@ -21,8 +21,8 @@ export default function Customers() {
       <div className="flex flex-col w-[90vw] h-[100vh] ml-4 overflow-y-auto">
         <div className=" w-full p-4 flex justify-between items-center">
           <div>
-            <h1 className="font-bold text-black text-3xl">All Customers</h1>
-            <h4 className="font-medium text-[#37e691] text-xl mt-1">
+            <h1 className="font-bold text-black text-2xl">All Customers</h1>
+            <h4 className="font-medium text-[#37e691] text-base mt-1">
               Detailed View
             </h4>
           </div>
