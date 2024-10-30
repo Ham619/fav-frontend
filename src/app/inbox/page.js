@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { Skeleton } from "antd";
 import ChatWindow from "./ChatWindow";
 import {
   faHome,
@@ -26,6 +27,13 @@ import {
   faList,
   faFont,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+  fetchCustomers,
+  fetchOrders,
+  sendEmail,
+  saveNote,
+  fetchCustomerAttribute,
+} from "../utils/api";
 
 export default function Inbox() {
   const [customers, setCustomers] = useState([]);
@@ -34,9 +42,44 @@ export default function Inbox() {
   const [loading, setLoading] = useState(true);
   const [selectedCustomer, setSelectedCustomer] = useState(null);
   const [selectedOrders, setSelectedOrders] = useState(null);
+  const [note, setNote] = useState("");
+  const [noteTitle, setNoteTitle] = useState("");
+  const [subject, setSubject] = useState("");
+  const [body, setBody] = useState("");
+  const [refreshChat, setRefreshChat] = useState(false);
+
+  // State for latest email
+  const [latestEmail, setLatestEmail] = useState(0);
 
   const [isReplyModalOpen, setIsReplyModalOpen] = useState(false);
   const [isNotesModelOpen, setIsNotesModalOPen] = useState(false);
+
+  // Code for functionality
+  const [isBoldActive, setIsBoldActive] = useState(false);
+  const [isItalicActive, setIsItalicActive] = useState(false);
+  const [isUnderlineActive, setIsUnderlineActive] = useState(false);
+  const [isStrikethroughActive, setIsStrikethroughActive] = useState(false);
+
+  const editorRef = useRef(null);
+
+  const toggleFormatting = (command) => {
+    document.execCommand(command, false, null);
+    updateToolbarStatus();
+  };
+
+  const updateToolbarStatus = () => {
+    setIsBoldActive(document.queryCommandState("bold"));
+    setIsItalicActive(document.queryCommandState("italic"));
+    setIsUnderlineActive(document.queryCommandState("underline"));
+    setIsStrikethroughActive(document.queryCommandState("strikeThrough"));
+  };
+
+  const insertLink = () => {
+    const url = prompt("Enter URL:");
+    if (url) {
+      document.execCommand("createLink", false, url);
+    }
+  };
 
   const openReplyModal = () => {
     setIsReplyModalOpen(true);
@@ -54,121 +97,138 @@ export default function Inbox() {
     setIsNotesModalOPen(false);
   };
 
-  // Fetch customers data
-  const fetchCustomers = async () => {
-    try {
-      setLoading(true);
-      const response = await fetch("http://localhost:5004/api/CustomerList/1", {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch customers");
-      }
-
-      const result = await response.json();
-      console.log("Customer data:", result); // Log the response for debugging
-
-      // Check if 'data' is an array, if not, convert it to an array
-      const customerArray = Array.isArray(result.data)
-        ? result.data
-        : [result.data];
-
-      // Set the customers state with the array
-      setCustomers(customerArray);
-    } catch (error) {
-      console.error("Error fetching customer data:", error);
-    } finally {
-      setLoading(false); // Stop loading after fetch
-    }
-  };
-
-  // Fetch orders data when a customer is selected
-  const fetchOrders = async (customerId) => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `http://localhost:5004/api/OrderSummary/${customerId}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders");
-      }
-
-      const result = await response.json();
-
-      console.log("Orders data:", result); // Log the response for debugging
-
-      // Check if 'data' is an array, if not, convert it to an array
-      // const ordersArray = Array.isArray(result.data)
-      //   ? result.data
-      //   : [result.data];
-      // setOrders(ordersArray);
-      const ordersArray = result.data?.orderData || [];
-      setOrders(ordersArray);
-      // const customerAttributesArray = result.data?.customerData || [];
-      // setCustomerAttribute(customerAttributesArray);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Fetch customer data when a customer is selected
-  const fetchCustomerAttribute = async (Id) => {
-    try {
-      setLoading(true);
-      const response = await fetch(
-        `http://localhost:5004/api/CustomerDetails/${Id}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Accept: "application/json",
-          },
-        }
-      );
-
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders");
-      }
-
-      const result = await response.json();
-
-      console.log("Customers Attributes data:", result); // Log the response for debugging
-
-      // Check if 'data' is an array, if not, convert it to an array
-      // const ordersArray = Array.isArray(result.data)
-      const customerAttributesArray = result.data || [];
-      setCustomerAttribute(customerAttributesArray);
-    } catch (error) {
-      console.error("Error fetching orders:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   useEffect(() => {
-    fetchCustomers(); // Fetch customers on component mount
+    const getCustomers = async () => {
+      try {
+        setLoading(true);
+        const result = await fetchCustomers();
+        setCustomers(Array.isArray(result.data) ? result.data : [result.data]);
+      } catch (error) {
+        console.error("Error fetching customers:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    getCustomers();
   }, []);
 
-  const handleCustomerClick = (customer) => {
-    setSelectedCustomer(customer);
-    fetchOrders(customer.CustomerId); // Fetch orders when a customer is selected
-    fetchCustomerAttribute(customer.Id)
+  const getCustomerAttribute = async (customerId) => {
+    try {
+      setLoading(true);
+      const result = await fetchCustomerAttribute(customerId);
+      console.log("Customer Attributes data:", result);
+
+      const customerAttributesArray = result.data || [];
+      setCustomerAttribute(customerAttributesArray);
+      return customerAttributesArray;
+    } catch (error) {
+      console.error("Error fetching customer attributes:", error);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const handleCustomerClick = async (customer) => {
+    setSelectedCustomer(customer);
+    setLoading(true);
+
+    try {
+      // Fetch orders for the selected customer
+      const ordersResult = await fetchOrders(customer.CustomerId);
+      setOrders(ordersResult.data?.orderData || []);
+
+      // Fetch and update customer attributes
+      const customerAttributes = await getCustomerAttribute(customer.Id);
+      if (customerAttributes) {
+        // Merge selected customer with additional attributes
+        setSelectedCustomer((prev) => ({
+          ...prev,
+          customerEmails: customerAttributes.customerEmails || [],
+          data: {
+            ...prev.data,
+            EmailId: customerAttributes.data?.EmailId,
+          },
+        }));
+
+        const emails = customerAttributes.customerEmails || [];
+        setLatestEmail(emails.length > 0 ? emails[0]?.EmailId : 1);
+      }
+    } catch (error) {
+      console.error("Error handling customer click:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSendEmail = async () => {
+    if (!selectedCustomer) {
+      alert("Select a customer to send an email.");
+      return;
+    }
+
+    const emailData = {
+      Id: selectedCustomer.Id,
+      Subject: subject,
+      Body: body,
+    };
+
+    try {
+      await sendEmail(emailData);
+      alert("Email sent successfully!");
+
+      // Refresh customer attribute to update email list
+      const updatedAttributes = await getCustomerAttribute(selectedCustomer.Id);
+      if (updatedAttributes && updatedAttributes.customerEmails.length > 0) {
+        setLatestEmail(updatedAttributes.customerEmails[0].EmailId);
+      }
+
+      // Refresh chat
+      setRefreshChat((prev) => !prev);
+      setSubject("");
+      setBody("");
+    } catch (error) {
+      console.error("Error sending email:", error);
+      alert("An error occurred while sending the email.");
+    }
+  };
+
+  const handleSaveNote = async () => {
+    if (!latestEmail || !note.trim() || !noteTitle.trim()) return;
+    try {
+      await saveNote({
+        CustomerEmailId: latestEmail,
+        Note: note,
+        Title: noteTitle,
+      });
+      setRefreshChat((prev) => !prev);
+      setNote("");
+      setNoteTitle("");
+    } catch (error) {
+      console.error("Error saving note:", error);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const hours = String(date.getHours()).padStart(2, "0");
+    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
+    const year = String(date.getFullYear()).slice(-2); // Get the last two digits of the year
+
+    return `${hours}:${minutes} ${day}/${month}/${year}`;
+  };
+
+  const formatDate1 = (dateString) => {
+    const dateParts = dateString.split("-");
+    const day = String(dateParts[2]).padStart(2, "0");
+    const month = String(dateParts[1]).padStart(2, "0");
+    const year = String(dateParts[0]).slice(-2); // Get the last two digits of the year
+
+    return `${day}/${month}/${year}`;
+  };
+
+  console.log("Latest Email", latestEmail);
 
   return (
     <div className="flex flex-grow flex-col">
@@ -222,12 +282,9 @@ export default function Inbox() {
               </div>
             </div>
             <div></div>
-            {/* Conditionally render spinner or customer data */}
+            {/* Conditionally render skeleton or customer data */}
             {loading ? (
-              <div className="flex justify-center items-center">
-                <div className="loader" />
-                <p className="text-gray-500 text-sm">Loading customers...</p>
-              </div>
+              <Skeleton active paragraph={{ rows: 5 }} />
             ) : (
               customers.map((customer, index) => (
                 <div
@@ -283,7 +340,18 @@ export default function Inbox() {
           </div>
 
           <div className="flex-grow relative">
-            <ChatWindow className="absolute inset-0 w-full overflow-auto" />
+            {selectedCustomer ? (
+              <ChatWindow
+                customerId={selectedCustomer.Id}
+                refreshChat={refreshChat}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-[70vh]">
+                <p className="text-gray-500 text-center">
+                  Select a customer to view chat
+                </p>
+              </div>
+            )}
           </div>
 
           {/* Action Buttons */}
@@ -314,10 +382,9 @@ export default function Inbox() {
               </div>
               <div className="mb-2">
                 <label className="block text-gray-700 text-[0.9rem]">To:</label>
-                <input
-                  type="text"
-                  className="w-full border border-gray-300 p-2 rounded"
-                />
+                <div className="w-full border border-gray-300 p-2 rounded bg-gray-100 text-gray-700">
+                  {selectedCustomer?.EmailId || "No email selected"}
+                </div>
               </div>
               <div className="mb-2">
                 <label className="block text-gray-700 text-[0.9rem]">
@@ -326,39 +393,65 @@ export default function Inbox() {
                 <input
                   type="text"
                   className="w-full border border-gray-300 p-2 rounded"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
                 />
               </div>
               <div className="mb-2">
                 <label className="block text-gray-700 text-[0.9rem]">
                   Email:
                 </label>
-                <textarea
-                  className="w-full border border-gray-300 p-2 rounded"
-                  rows={4}
+                <div
+                  contentEditable
+                  className="w-full border border-gray-300 p-2 rounded min-h-[100px]"
                   placeholder="Write Email Here..."
-                ></textarea>
+                  ref={editorRef}
+                  onInput={(e) => setBody(e.currentTarget.textContent)}
+                ></div>
               </div>
               <div className="flex justify-between items-center">
                 <div className="flex space-x-2">
-                  <button className="text-gray-500">
+                  {/* Bold Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isBoldActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("bold")}
+                  >
                     <FontAwesomeIcon icon={faBold} size="md" />
                   </button>
-                  <button className="text-gray-500">
+                  {/* Italic Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isItalicActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("italic")}
+                  >
                     <FontAwesomeIcon icon={faItalic} size="md" />
                   </button>
-                  <button className="text-gray-500">
+                  {/* Underline Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isUnderlineActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("underline")}
+                  >
                     <FontAwesomeIcon icon={faUnderline} size="md" />
                   </button>
-                  <button className="text-gray-500">
+                  {/* Strikethrough Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isStrikethroughActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("strikeThrough")}
+                  >
                     <FontAwesomeIcon icon={faStrikethrough} size="md" />
                   </button>
-                  <button className="text-gray-500">
-                    <FontAwesomeIcon icon={faListUl} size="md" />
-                  </button>
-                  <button className="text-gray-500">
-                    <FontAwesomeIcon icon={faListOl} size="md" />
-                  </button>
-                  <button className="text-gray-500">
+                  {/* Link Button */}
+                  <button
+                    className="p-2 rounded text-gray-500"
+                    onClick={() => insertLink()}
+                  >
                     <FontAwesomeIcon icon={faLink} size="md" />
                   </button>
                 </div>
@@ -369,38 +462,77 @@ export default function Inbox() {
                   >
                     Discard
                   </button>
-                  <button className="px-4 py-2 font-semibold text-white text-sm rounded-sm bg-gradient-to-br from-pink-500 to-purple-600">
-                    Send Message
+                  <button
+                    className="px-4 py-2 font-semibold text-white text-sm rounded-sm bg-gradient-to-br from-pink-500 to-purple-600"
+                    onClick={handleSendEmail}
+                  >
+                    Send Email
                   </button>
                 </div>
               </div>
             </div>
           )}
+
           {isNotesModelOpen && (
             <div className="absolute bottom-0 left-0 right-0 bg-customYellow rounded-lg shadow-md">
               <input
                 type="text"
                 placeholder="Write Title..."
                 className="w-full px-3 py-2 mb-2 bg-nextSilver border-none outline-none"
+                value={noteTitle} // Use the new title state
+                onChange={(e) => setNoteTitle(e.target.value)}
               />
-              <textarea
-                placeholder="Type Something Here...."
-                className="w-full px-3 py-1 h-32 bg-customYellow border-none outline-none resize-none"
-              ></textarea>
-              <div className="flex justify-between items-center mt-2">
+              <div
+                contentEditable
+                className="w-full px-3 py-1 h-32 bg-customYellow border-none outline-none"
+                placeholder="Type Something Here..."
+                onInput={(e) => setNote(e.currentTarget.innerText)}
+              ></div>
+              <div className="flex justify-between items-center mt-2 mb-2">
                 <div className="flex space-x-3 ml-2 text-gray-600">
-                  <FontAwesomeIcon icon={faFont} size="md" />
-                  <FontAwesomeIcon icon={faUnderline} size="md" />
-                  <FontAwesomeIcon icon={faBold} size="md" />
-                  <FontAwesomeIcon icon={faItalic} size="md" />
-                  <FontAwesomeIcon icon={faList} size="md" />
-
-                  {/* <i className="fas fa-underline"></i>
-                  <i className="fas fa-bold"></i>
-                  <i className="fas fa-italic"></i>
-                  <i className="fas fa-list"></i>
-                  <i className="fas fa-align-left"></i>
-                  <i className="fas fa-undo"></i> */}
+                  {/* Bold Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isBoldActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("bold")}
+                  >
+                    <FontAwesomeIcon icon={faBold} size="md" />
+                  </button>
+                  {/* Italic Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isItalicActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("italic")}
+                  >
+                    <FontAwesomeIcon icon={faItalic} size="md" />
+                  </button>
+                  {/* Underline Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isUnderlineActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("underline")}
+                  >
+                    <FontAwesomeIcon icon={faUnderline} size="md" />
+                  </button>
+                  {/* Strikethrough Button */}
+                  <button
+                    className={`p-2 rounded ${
+                      isStrikethroughActive ? "bg-gray-300" : ""
+                    }`}
+                    onClick={() => toggleFormatting("strikeThrough")}
+                  >
+                    <FontAwesomeIcon icon={faStrikethrough} size="md" />
+                  </button>
+                  {/* Link Button */}
+                  <button
+                    className="p-2 rounded text-gray-500"
+                    onClick={() => insertLink()}
+                  >
+                    <FontAwesomeIcon icon={faLink} size="md" />
+                  </button>
                 </div>
                 <div className="flex space-x-2 p-2">
                   <button
@@ -409,7 +541,10 @@ export default function Inbox() {
                   >
                     Discard
                   </button>
-                  <button className="px-4 py-2 font-semibold text-white text-sm rounded-sm bg-customBrown">
+                  <button
+                    className="px-4 py-2 font-semibold text-white text-sm rounded-sm bg-customBrown"
+                    onClick={handleSaveNote}
+                  >
                     Save
                   </button>
                 </div>
@@ -445,7 +580,9 @@ export default function Inbox() {
                   <span className="w-4 h-4 mr-2 text-gray-600">
                     <FontAwesomeIcon icon={faEnvelope} size="sm" />
                   </span>
-                  <p className="text-sm pt-1">{customerAttribute.EmailId}</p>
+                  <p className="text-sm pt-1">
+                    {customerAttribute.EmailId || "N/A"}
+                  </p>
                 </div>
 
                 <div className="flex items-center">
@@ -484,43 +621,55 @@ export default function Inbox() {
               <div className="space-y-2 text-sm pl-2 pr-2 text-left">
                 <div className="flex justify-between">
                   <p>Email Status:</p>
-                  <p>{customerAttribute.EmailStatus}</p>
+                  <p>{customerAttribute.EmailStatus || "N/A"}</p>
                 </div>
                 <div className="flex justify-between">
                   <p>First Seen:</p>
-                  <p>{customerAttribute.FirstSeenDate}</p>
+                  <p>{customerAttribute.FirstSeenDate ? formatDate1(customerAttribute.FirstSeenDate) : "N/A"}</p>
                 </div>
                 <div className="flex justify-between">
                   <p>Signed Up:</p>
-                  <p>{customerAttribute.SignedUp}</p>
+                  <p>{customerAttribute.SignedUp || "N/A"}</p>
                 </div>
                 <div className="flex justify-between">
                   <p>First Contacted:</p>
                   <p>
-                    {/* {selectedCustomer.date_created || "N/A"} */}
-                  {/* {new Date(selectedCustomer.date_created).toLocaleDateString()} */}
-                  {customerAttribute.FirstContacted}
+                    {customerAttribute.FirstContacted
+                      ? formatDate(customerAttribute.FirstContacted)
+                      : "N/A"}
                   </p>
                 </div>
                 <div className="flex justify-between">
                   <p>Last Contacted:</p>
-                  <p>{customerAttribute.FirstContacted}</p>
+                  <p>
+                    {customerAttribute.LastContacted
+                      ? formatDate(customerAttribute.LastContacted)
+                      : "N/A"}
+                  </p>
                 </div>
                 <div className="flex justify-between">
                   <p>First Order Placed:</p>
-                  <p>{customerAttribute.FirstOrderPlaced}</p>
+                  <p>
+                    {customerAttribute.FirstOrderPlaced
+                      ? formatDate1(customerAttribute.FirstOrderPlaced)
+                      : "N/A"}
+                  </p>
                 </div>
                 <div className="flex justify-between">
                   <p>Last Order Placed:</p>
-                  <p>{customerAttribute.LastOrderPlaced}</p>
+                  <p>
+                    {customerAttribute.LastOrderPlaced
+                      ? formatDate1(customerAttribute.LastOrderPlaced)
+                      : "N/A"}
+                  </p>
                 </div>
                 <div className="flex justify-between">
                   <p>Total Order Value:</p>
-                  <p>{customerAttribute.TotalOrderValue}</p>
+                  <p>{customerAttribute.TotalOrderValue || "N/A"}</p>
                 </div>
                 <div className="flex justify-between">
                   <p>Total Order Quantity:</p>
-                  <p>{customerAttribute.TotalOrderQuantity}</p>
+                  <p>{customerAttribute.TotalOrderQuantity || "N/A"}</p>
                 </div>
               </div>
             </div>
@@ -565,7 +714,9 @@ export default function Inbox() {
                     className="grid grid-cols-3 gap-2 mb-1 border-t border-gray-300"
                   >
                     <p className="p-1 bg-white">
-                    {order?.date_created ? new Date(order.date_created).toLocaleDateString() : 'N/A'}
+                      {order?.date_created
+                        ? new Date(order.date_created).toLocaleDateString()
+                        : "N/A"}
                     </p>
                     <p className="p-1 bg-white text-center">#{order?.id}</p>
                     <p

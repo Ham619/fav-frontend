@@ -131,9 +131,6 @@ export default function Customers() {
           </div>
 
           <NewCustomerTable />
-          {/* <div className='w-fit w-max-[90%] overflow-x-autoauto mt-3 p-1 rounded-md shadow-xl'>
-                  
-              </div> */}
         </div>
       </div>
     // </div>

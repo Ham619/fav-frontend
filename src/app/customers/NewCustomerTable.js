@@ -1,147 +1,172 @@
 "use client";
-import React from "react";
-import { Space, Table, Tag } from "antd";
-import { WidthFull } from "@mui/icons-material";
+import React, { useEffect, useState } from "react";
+import { Table, Tag, Skeleton } from "antd";
 
 const columns = [
   {
+    title: "ID",
+    dataIndex: "id",
+    key: "id",
+    width: 80,
+  },
+  {
+    title: "Customer ID",
+    dataIndex: "customerId",
+    key: "customerId",
+    width: 120,
+  },
+  {
     title: "Customer Name",
-    dataIndex: "customer",
-    key: "name",
+    dataIndex: "customerName",
+    key: "customerName",
+    width: 200,
     render: (text) => <a>{text}</a>,
   },
   {
     title: "Company",
     dataIndex: "company",
     key: "company",
+    width: 150,
   },
   {
     title: "Phone Number",
-    dataIndex: "phoneNumber",
-    key: "phoneNumber",
+    dataIndex: "phone",
+    key: "phone",
+    width: 150,
   },
   {
     title: "Email",
     dataIndex: "email",
     key: "email",
+    width: 200,
+  },
+  {
+    title: "Email Status",
+    dataIndex: "emailStatus",
+    key: "emailStatus",
+    width: 130,
   },
   {
     title: "Country",
     dataIndex: "country",
     key: "country",
+    width: 100,
   },
   {
-    title: "Pipeline",
-    dataIndex: "pipeline",
-    key: "pipeline",
+    title: "First Seen Date",
+    dataIndex: "firstSeenDate",
+    key: "firstSeenDate",
+    width: 130,
   },
   {
-    title: "Assigned to",
-    dataIndex: "assignedTo",
-    key: "assigned",
-    render: (text) => <a className=" text-blue underline  ">{text}</a>,
+    title: "First Order Placed",
+    dataIndex: "firstOrderPlaced",
+    key: "firstOrderPlaced",
+    width: 130,
+  },
+  {
+    title: "Last Order Placed",
+    dataIndex: "lastOrderPlaced",
+    key: "lastOrderPlaced",
+    width: 130,
+  },
+  {
+    title: "First Contacted",
+    dataIndex: "firstContacted",
+    key: "firstContacted",
+    width: 130,
+  },
+  {
+    title: "Signed Up",
+    dataIndex: "signedUp",
+    key: "signedUp",
+    width: 130,
+  },
+  {
+    title: "Total Orders",
+    dataIndex: "totalOrderPlaced",
+    key: "totalOrderPlaced",
+    width: 120,
+    ellipsis: true,
+  },
+  {
+    title: "Order Value",
+    dataIndex: "totalOrderValue",
+    key: "totalOrderValue",
+    width: 120,
+    ellipsis: true,
   },
   {
     title: "Status",
     dataIndex: "status",
     key: "status",
-    render: (_, tag) => (
-      <Tag color={tag.status === "Active" ? "green" : "red"} key={tag}>
-        {tag.status}
+    width: 100,
+    render: (_, record) => (
+      <Tag color={record.totalOrderPlaced ? "green" : "red"} key={record.id}>
+        {record.totalOrderPlaced ? "Active" : "Inactive"}
       </Tag>
     ),
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    render: (_, tag) => (
-      <Tag color={tag.status === "Active" ? "green" : "red"} key={tag}>
-        {tag.status}
-      </Tag>
-    ),
-  },
-  {
-    title: "Pipeline",
-    dataIndex: "pipeline",
-    key: "pipeline",
-  },
-  {
-    title: "Assigned to",
-    dataIndex: "assignedTo",
-    key: "assigned",
-    render: (text) => <a className=" text-blue underline  ">{text}</a>,
-  },
-  {
-    title: "Phone Number",
-    dataIndex: "phoneNumber",
-    key: "phoneNumber",
-  },
-  {
-    title: "Email",
-    dataIndex: "email",
-    key: "email",
   },
 ];
-const createData = (
-  customer,
-  company,
-  phoneNumber,
-  email,
-  country,
-  pipeline,
-  assignedTo,
-  status,
-  category
-) => {
-  return {
-    customer,
-    company,
-    phoneNumber,
-    email,
-    country,
-    pipeline,
-    assignedTo,
-    status,
-    category,
-  };
-};
-const generateDummyRows = () => {
-  const rows = [];
-  for (let i = 1; i <= 20; i++) {
-    rows.push(
-      createData(
-        `Customer ${i}`,
-        `Company ${i}`,
-        `(123) 555-0${i}00`,
-        `customer${i}@company.com`,
-        "United States",
-        "Pipeline " + (i % 5), // Rotate through 5 pipelines
-        `Assigned To ${i}`,
-        i % 2 === 0 ? "Active" : "Inactive",
-        `Category ${i % 3}`, // Rotate through 3 categories
-        `altEmail${i}@company.com`,
-        "United States",
-        i % 2 === 0 ? "Active" : "Inactive"
-      )
-    );
-  }
-  return rows;
-};
-
-const rows = generateDummyRows();
 
 const NewCustomerTable = () => {
+  const [data, setData] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCustomerData = async () => {
+      try {
+        const response = await fetch("http://13.200.242.122:8080/api/CustomerList/1");
+        const result = await response.json();
+        if (result.message === "Request success") {
+          const formattedData = result.data.map((item) => {
+            const formatDate = (date) =>
+              date ? new Date(date).toLocaleDateString("en-GB") : "N/A";
+            
+            return {
+              key: item.Id,
+              id: item.Id,
+              customerId: item.CustomerId || "N/A",
+              customerName: `${item.FirstName} ${item.LastName}`,
+              company: item.Company || "N/A",
+              phone: item.Phone || "N/A",
+              email: item.EmailId,
+              emailStatus: item.EmailStatus || "N/A",
+              country: item.Country || "N/A",
+              firstSeenDate: formatDate(item.FirstSeenDate),
+              firstOrderPlaced: formatDate(item.FirstOrderPlaced),
+              lastOrderPlaced: formatDate(item.LastOrderPlaced),
+              firstContacted: formatDate(item.FirstContacted),
+              signedUp: formatDate(item.SignedUp),
+              totalOrderPlaced: item.TotalOrderPlaced || 0,
+              totalOrderValue: item.TotalOrderValue || 0,
+              status: item.TotalOrderPlaced ? "Active" : "Inactive",
+            };
+          });
+          setData(formattedData);
+        }
+      } catch (error) {
+        console.error("Failed to fetch data:", error);
+      } finally {
+        setLoading(false); // Stop loading when data is fetched or an error occurs
+      }
+    };
+
+    fetchCustomerData();
+  }, []);
+
   return (
-    <Table
-      columns={columns}
-      style={{ width: "100%" }}
-      dataSource={rows}
-      pagination={{ pageSize: 10 }}
-      tableLayout="auto"
-      scroll={{ x: 'max-content', y: 400 }}
-    />
+    <Skeleton loading={loading} active>
+      <Table
+        columns={columns}
+        dataSource={data}
+        pagination={{ pageSize: 10 }}
+        scroll={{ x: 'max-content', y: 400 }}
+        style={{ width: "100%" }}
+      />
+    </Skeleton>
   );
 };
 
 export default NewCustomerTable;
+
