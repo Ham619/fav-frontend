@@ -1,6 +1,7 @@
 "use client";
 import { useEffect } from "react";
 import axios from "axios";
+import { redirect } from 'next/navigation'
 
 async function getStore(query) {
   try {
@@ -43,9 +44,10 @@ async function getStore(query) {
     if (data) {
       localStorage.setItem("store_id", savedData.StoreId);
       console.log("Store ID saved to localStorage:", savedData.StoreId);
+      redirect('/')
     }
 
-    console.log("Store data sent to favcrm API successfully");
+    
   } catch (error) {
     console.error("Error fetching store data:", error.message);
   }
