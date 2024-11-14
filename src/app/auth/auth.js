@@ -38,7 +38,7 @@ async function getStore(query) {
       }
     );
     const savedData = data.data;
-    console.log("data", data.savedData);
+    console.log("data",savedData);
 
     if (data) {
       localStorage.setItem("store_id", savedData.StoreId);
