@@ -1,6 +1,6 @@
 // utils/api.js
 
-const BASE_URL = "http://13.200.242.122:8080/api";
+const BASE_URL = "https://favcrm.softwareexato.com/api";
 
 const headers = {
   "Content-Type": "application/json",

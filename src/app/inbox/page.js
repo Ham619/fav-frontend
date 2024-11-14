@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { notification } from "antd";
 import { Skeleton } from "antd";
 import ChatWindow from "./ChatWindow";
 import {
@@ -26,6 +27,8 @@ import {
   faSort,
   faList,
   faFont,
+  faCaretUp,
+  faCaretDown,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   fetchCustomers,
@@ -34,6 +37,7 @@ import {
   saveNote,
   fetchCustomerAttribute,
 } from "../utils/api";
+import {formatDate,formatDate1} from "../utils/dateFormat"
 
 export default function Inbox() {
   const [customers, setCustomers] = useState([]);
@@ -174,7 +178,15 @@ export default function Inbox() {
 
     try {
       await sendEmail(emailData);
-      alert("Email sent successfully!");
+      // alert("Email sent successfully!");
+      // Show notification instead of alert
+      notification.open({
+        message: "Email Successfully Sent",
+        description: "The email has been sent successfully.",
+        duration: 3,
+        showProgress: true,
+        placement: "topRight",
+      });
 
       // Refresh customer attribute to update email list
       const updatedAttributes = await getCustomerAttribute(selectedCustomer.Id);
@@ -186,6 +198,7 @@ export default function Inbox() {
       setRefreshChat((prev) => !prev);
       setSubject("");
       setBody("");
+      closeReplyModal();
     } catch (error) {
       console.error("Error sending email:", error);
       alert("An error occurred while sending the email.");
@@ -200,32 +213,46 @@ export default function Inbox() {
         Note: note,
         Title: noteTitle,
       });
+      notification.open({
+        message: "Note Added Successfully",
+        duration: 3,
+        showProgress: true,
+        placement: "topRight",
+      });
       setRefreshChat((prev) => !prev);
       setNote("");
       setNoteTitle("");
+      closeNotesModal();
     } catch (error) {
       console.error("Error saving note:", error);
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const month = String(date.getMonth() + 1).padStart(2, "0"); // Months are 0-based
-    const year = String(date.getFullYear()).slice(-2); // Get the last two digits of the year
 
-    return `${hours}:${minutes} ${day}/${month}/${year}`;
+
+  const [isExpanded, setIsExpanded] = useState(true);
+
+  const toggleExpand = () => {
+    setIsExpanded(!isExpanded);
   };
 
-  const formatDate1 = (dateString) => {
-    const dateParts = dateString.split("-");
-    const day = String(dateParts[2]).padStart(2, "0");
-    const month = String(dateParts[1]).padStart(2, "0");
-    const year = String(dateParts[0]).slice(-2); // Get the last two digits of the year
+  const [isOrderSummaryExpanded, setIsOrderSummaryExpanded] = useState(true);
 
-    return `${day}/${month}/${year}`;
+  const toggleOrderSummaryExpand = () => {
+    setIsOrderSummaryExpanded(!isOrderSummaryExpanded);
+  };
+
+  const [isRecentActivityExpanded, setIsRecentActivityExpanded] =
+    useState(true);
+
+  const toggleRecentActivityExpand = () => {
+    setIsRecentActivityExpanded(!isRecentActivityExpanded);
+  };
+
+  const [isConversationsExpanded, setIsConversationsExpanded] = useState(true);
+
+  const toggleConversationsExpand = () => {
+    setIsConversationsExpanded(!isConversationsExpanded);
   };
 
   console.log("Latest Email", latestEmail);
@@ -236,14 +263,14 @@ export default function Inbox() {
       <div className="flex justify-between items-center p-1 mt-4 ml-4">
         <div>
           <h1 className="text-2xl font-bold">Customers</h1>
-          <p className="text-[#37e691] text-base">Profile Overview</p>
+          <p className="text-[#279a63] text-base">Profile Overview</p>
         </div>
       </div>
 
       {/* Main Content Area */}
       <div className="flex flex-grow space-x-4 p-2 px-4">
         {/* Left Sidebar */}
-        <div className="bg-white w-1/4 overflow-scroll h-[90vh] p-6 rounded-lg shadow-lg">
+        <div className="bg-white w-1/4 overflow-scroll h-[87vh] p-6 rounded-lg shadow-lg">
           {/* Search Conversation Card */}
           <div className="bg-gray-100 p-4 rounded-sm shadow-md mb-6">
             <div className="relative">
@@ -317,7 +344,7 @@ export default function Inbox() {
         </div>
 
         {/* Main Content */}
-        <div className="flex-grow p-6 w-1/2 bg-white rounded-lg h-[90vh] shadow-lg relative">
+        <div className="flex-grow p-6 w-1/2 bg-white rounded-lg h-[87vh] shadow-lg relative">
           <div className="flex justify-between mb-4">
             <select
               className="text-pink-500 cursor-pointer bg-white border-2 border-pink-500 px-2 py-1 focus:outline-none rounded-sm text-sm font-semibold"
@@ -554,7 +581,7 @@ export default function Inbox() {
         </div>
 
         {/* Right Sidebar */}
-        <div className="w-1/5 overflow-scroll h-[90vh]">
+        <div className="w-1/5 overflow-scroll h-[87vh]">
           {" "}
           {/* Ensure full height for scrolling */}
           {customerAttribute ? (
@@ -566,10 +593,10 @@ export default function Inbox() {
                 </h2>
 
                 <div className="flex space-x-2 ml-3">
-                  <button className="px-2 py-1 bg-green-400 text-white rounded-sm text-xs font-semibold">
+                  <button className="px-2 py-1 bg-green-600 text-white rounded-sm text-xs font-semibold">
                     Loyal
                   </button>
-                  <button className="px-2 py-1 bg-yellow-400 text-white rounded-sm text-xs font-semibold">
+                  <button className="px-2 py-1 bg-yellow-500 text-white rounded-sm text-xs font-semibold">
                     VIP
                   </button>
                 </div>
@@ -608,287 +635,333 @@ export default function Inbox() {
             <p className="text-gray-500">Select a customer to view details</p>
           )}
           {/* Middle Card: Attributes */}
-          {customerAttribute ? (
-            <div className="mb-6 p-4 rounded-lg shadow-lg bg-white">
+          <div className="mb-6 p-4 rounded-lg shadow-lg bg-white">
+            <div className="flex items-center justify-between">
               <h3 className="font-bold text-gray-600 mb-1 pl-1">Attributes</h3>
-              {/* Search Box */}
-              <input
-                type="text"
-                placeholder="Type here"
-                className="w-full h-7 p-2 mb-3 text-sm border rounded-sm border-gray-300 focus:outline-none"
+              <FontAwesomeIcon
+                icon={isExpanded ? faCaretUp : faCaretDown}
+                className="cursor-pointer text-gray-600"
+                onClick={toggleExpand}
               />
-              {/* Attributes List */}
-              <div className="space-y-2 text-sm pl-2 pr-2 text-left">
-                <div className="flex justify-between">
-                  <p>Email Status:</p>
-                  <p>{customerAttribute.EmailStatus || "N/A"}</p>
-                </div>
-                <div className="flex justify-between">
-                  <p>First Seen:</p>
-                  <p>{customerAttribute.FirstSeenDate ? formatDate1(customerAttribute.FirstSeenDate) : "N/A"}</p>
-                </div>
-                <div className="flex justify-between">
-                  <p>Signed Up:</p>
-                  <p>{customerAttribute.SignedUp || "N/A"}</p>
-                </div>
-                <div className="flex justify-between">
-                  <p>First Contacted:</p>
-                  <p>
-                    {customerAttribute.FirstContacted
-                      ? formatDate(customerAttribute.FirstContacted)
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="flex justify-between">
-                  <p>Last Contacted:</p>
-                  <p>
-                    {customerAttribute.LastContacted
-                      ? formatDate(customerAttribute.LastContacted)
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="flex justify-between">
-                  <p>First Order Placed:</p>
-                  <p>
-                    {customerAttribute.FirstOrderPlaced
-                      ? formatDate1(customerAttribute.FirstOrderPlaced)
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="flex justify-between">
-                  <p>Last Order Placed:</p>
-                  <p>
-                    {customerAttribute.LastOrderPlaced
-                      ? formatDate1(customerAttribute.LastOrderPlaced)
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="flex justify-between">
-                  <p>Total Order Value:</p>
-                  <p>{customerAttribute.TotalOrderValue || "N/A"}</p>
-                </div>
-                <div className="flex justify-between">
-                  <p>Total Order Quantity:</p>
-                  <p>{customerAttribute.TotalOrderQuantity || "N/A"}</p>
-                </div>
-              </div>
             </div>
-          ) : (
-            <p className="text-gray-500">
-              Select a customer to view Attributes
-            </p>
-          )}
-          {/* Bottom Card: Order Summary */}
-          <div className="p-4 rounded-lg shadow-lg bg-white">
-            <h3 className="font-bold text-gray-600 mb-1 pl-1">Order Summary</h3>
-            {/* Search Box */}
-            <div className="flex items-start justify-between">
-              <input
-                type="text"
-                placeholder="Search Order"
-                className="w-full p-2 mb-4 text-sm border rounded-sm border-gray-300 h-7 focus:outline-none"
-              />
-              <div className="flex items-center space-x-1 ml-2">
-                <span className="flex p-[0.4rem] items-center justify-center w-7 h-7 text-gray-500 bg-white border border-gray-300 rounded">
-                  <FontAwesomeIcon icon={faArrowUp} size="sm" />
-                </span>
-                <span className="flex p-[0.4rem] items-center justify-center w-7 h-7 text-gray-500 bg-white border border-gray-300 rounded">
-                  <FontAwesomeIcon icon={faFilter} size="sm" />
-                </span>
-              </div>
-            </div>
-            {/* Table-like Structure */}
-            <div className="text-sm border border-gray-300">
-              {/* Header Row */}
-              <div className="grid grid-cols-3 gap-4 font-semibold bg-gray-200 p-2 border">
-                <p>Date</p>
-                <p>Order ID</p>
-                <p>Status</p>
-              </div>
-              {/* Rows */}
-              {/* Map over orders to display rows */}
-              {orders.length > 0 ? (
-                orders.map((order, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-3 gap-2 mb-1 border-t border-gray-300"
-                  >
-                    <p className="p-1 bg-white">
-                      {order?.date_created
-                        ? new Date(order.date_created).toLocaleDateString()
+
+            {isExpanded && (
+              <>
+                {/* Search Box */}
+                <input
+                  type="text"
+                  placeholder="Type here"
+                  className="w-full h-7 p-2 mb-3 text-sm border rounded-sm border-gray-300 focus:outline-none"
+                />
+                {/* Attributes List */}
+                <div className="space-y-2 text-sm pl-2 pr-2 text-left">
+                  <div className="flex justify-between">
+                    <p>Email Status:</p>
+                    <p>{customerAttribute.EmailStatus || "N/A"}</p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>First Seen:</p>
+                    <p>
+                      {customerAttribute.FirstSeenDate
+                        ? formatDate1(customerAttribute.FirstSeenDate)
                         : "N/A"}
                     </p>
-                    <p className="p-1 bg-white text-center">#{order?.id}</p>
-                    <p
-                      className={`p-1 mr-1 text-[0.8rem] bg-white font-semibold leading-tight ${
-                        order?.status === "Completed"
-                          ? "text-green-600"
-                          : "text-yellow-600"
-                      }`}
-                    >
-                      {order?.status}
+                  </div>
+                  <div className="flex justify-between">
+                    <p>Signed Up:</p>
+                    <p>{customerAttribute.SignedUp || "N/A"}</p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>First Contacted:</p>
+                    <p>
+                      {customerAttribute.FirstContacted
+                        ? formatDate(customerAttribute.FirstContacted)
+                        : "N/A"}
                     </p>
                   </div>
-                ))
-              ) : (
-                <div className="p-2 text-gray-500">No orders found</div>
-              )}
+                  <div className="flex justify-between">
+                    <p>Last Contacted:</p>
+                    <p>
+                      {customerAttribute.LastContacted
+                        ? formatDate(customerAttribute.LastContacted)
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>First Order Placed:</p>
+                    <p>
+                      {customerAttribute.FirstOrderPlaced
+                        ? formatDate1(customerAttribute.FirstOrderPlaced)
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>Last Order Placed:</p>
+                    <p>
+                      {customerAttribute.LastOrderPlaced
+                        ? formatDate1(customerAttribute.LastOrderPlaced)
+                        : "N/A"}
+                    </p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>Total Order Value:</p>
+                    <p>{customerAttribute.TotalOrderValue || "N/A"}</p>
+                  </div>
+                  <div className="flex justify-between">
+                    <p>Total Order Quantity:</p>
+                    <p>{customerAttribute.TotalOrderQuantity || "N/A"}</p>
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+          {/* Bottom Card: Order Summary */}
+          <div className="p-4 rounded-lg shadow-lg bg-white">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-gray-600 mb-1 pl-1">
+                Order Summary
+              </h3>
+              <FontAwesomeIcon
+                icon={isOrderSummaryExpanded ? faCaretUp : faCaretDown}
+                className="cursor-pointer text-gray-600"
+                onClick={toggleOrderSummaryExpand}
+              />
             </div>
+
+            {isOrderSummaryExpanded && (
+              <>
+                {/* Search Box */}
+                <div className="flex items-start justify-between">
+                  <input
+                    type="text"
+                    placeholder="Search Order"
+                    className="w-full p-2 mb-4 text-sm border rounded-sm border-gray-300 h-7 focus:outline-none"
+                  />
+                  <div className="flex items-center space-x-1 ml-2">
+                    <span className="flex p-[0.4rem] items-center justify-center w-7 h-7 text-gray-500 bg-white border border-gray-300 rounded">
+                      <FontAwesomeIcon icon={faArrowUp} size="sm" />
+                    </span>
+                    <span className="flex p-[0.4rem] items-center justify-center w-7 h-7 text-gray-500 bg-white border border-gray-300 rounded">
+                      <FontAwesomeIcon icon={faFilter} size="sm" />
+                    </span>
+                  </div>
+                </div>
+                {/* Table-like Structure */}
+                <div className="text-sm border border-gray-300">
+                  {/* Header Row */}
+                  <div className="grid grid-cols-3 gap-4 font-semibold bg-gray-200 p-2 border">
+                    <p>Date</p>
+                    <p>Order ID</p>
+                    <p>Status</p>
+                  </div>
+                  {/* Rows */}
+                  {/* Map over orders to display rows */}
+                  {orders.length > 0 ? (
+                    orders.map((order, index) => (
+                      <div
+                        key={index}
+                        className="grid grid-cols-3 gap-2 mb-1 border-t border-gray-300"
+                      >
+                        <p className="p-1 bg-white">
+                          {order?.date_created
+                            ? new Date(order.date_created).toLocaleDateString()
+                            : "N/A"}
+                        </p>
+                        <p className="p-1 bg-white text-center">#{order?.id}</p>
+                        <p
+                          className={`p-1 mr-1 text-[0.8rem] bg-white font-semibold leading-tight ${
+                            order?.status === "Completed"
+                              ? "text-green-600"
+                              : "text-yellow-600"
+                          }`}
+                        >
+                          {order?.status}
+                        </p>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="p-2 text-gray-500">No orders found</div>
+                  )}
+                </div>
+              </>
+            )}
           </div>
           {/* Recent Activity Card */}
           <div className="bg-white shadow-md rounded-lg p-4 w-full mt-6 mb-4">
-            <h2 className="text-lg font-semibold mb-4">Recent Activity</h2>
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Type here..."
-                className="w-full p-2 border rounded-md"
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-gray-600 mb-2">Recent Activity</h2>
+              <FontAwesomeIcon
+                icon={isRecentActivityExpanded ? faCaretUp : faCaretDown}
+                className="cursor-pointer text-gray-600"
+                onClick={toggleRecentActivityExpand}
               />
-              <div className="absolute right-2 top-2 flex space-x-2">
-                <button className="p-1">
-                  <FontAwesomeIcon icon={faFilter} size="md" />
-                </button>
-                <button className="p-1">
-                  <FontAwesomeIcon icon={faSort} size="md" />
-                </button>
-              </div>
             </div>
-            <div className="relative">
-              <div className="absolute left-[5.5rem] top-0 bottom-0 w-0.5 bg-gray-300"></div>
-              <div className="space-y-4">
-                {[
-                  {
-                    color: "#E0FFE0",
-                    date: "25-07-23",
-                    activity: "Order #101 Completed",
-                  },
-                  {
-                    color: "#E0F7FF",
-                    date: "26-07-23",
-                    activity: "Order #102 Shipped",
-                  },
-                  {
-                    color: "#F0E0FF",
-                    date: "27-07-23",
-                    activity: "Order #103 Processing",
-                  },
-                  {
-                    color: "#FFF0E0",
-                    date: "28-07-23",
-                    activity: "Order #104 Canceled",
-                  },
-                  {
-                    color: "#E0FFE0",
-                    date: "29-07-23",
-                    activity: "Order #105 Completed",
-                  },
-                  {
-                    color: "#F0E0FF",
-                    date: "30-07-23",
-                    activity: "Order #106 Delivered",
-                  },
-                ].map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex items-center space-x-2 relative"
-                  >
-                    <div className="absolute left-20 w-4 h-4 bg-white border-2 border-gray-300 rounded-full"></div>
-                    <div className="text-sm text-gray-500 ml-8">
-                      {item.date}
-                    </div>
-                    <div
-                      className="flex-1 h-8  px-6 rounded-md flex items-center justify-center text-xs text-gray-500 font-medium"
-                      style={{ backgroundColor: item.color }}
-                    >
-                      {item.activity}
-                    </div>
-                    <div className="flex space-x-1">
-                      <button className="p-1">
-                        <i className="fas fa-ellipsis-v"></i>
-                      </button>
-                      <button className="p-1">
-                        <i className="fas fa-ellipsis-v"></i>
-                      </button>
-                    </div>
+
+            {isRecentActivityExpanded && (
+              <>
+                <div className="relative mb-4">
+                  <input
+                    type="text"
+                    placeholder="Type here..."
+                    className="w-full p-2 border rounded-md"
+                  />
+                  <div className="absolute right-2 top-2 flex space-x-2">
+                    <button className="p-1">
+                      <FontAwesomeIcon icon={faFilter} size="md" />
+                    </button>
+                    <button className="p-1">
+                      <FontAwesomeIcon icon={faSort} size="md" />
+                    </button>
                   </div>
-                ))}
-              </div>
-            </div>
+                </div>
+                <div className="relative">
+                  <div className="absolute left-[5.5rem] top-0 bottom-0 w-0.5 bg-gray-300"></div>
+                  <div className="space-y-4">
+                    {[
+                      {
+                        color: "#E0FFE0",
+                        date: "25-07-23",
+                        activity: "Order #101 Completed",
+                      },
+                      {
+                        color: "#E0F7FF",
+                        date: "26-07-23",
+                        activity: "Order #102 Shipped",
+                      },
+                      {
+                        color: "#F0E0FF",
+                        date: "27-07-23",
+                        activity: "Order #103 Processing",
+                      },
+                      {
+                        color: "#FFF0E0",
+                        date: "28-07-23",
+                        activity: "Order #104 Canceled",
+                      },
+                      {
+                        color: "#E0FFE0",
+                        date: "29-07-23",
+                        activity: "Order #105 Completed",
+                      },
+                      {
+                        color: "#F0E0FF",
+                        date: "30-07-23",
+                        activity: "Order #106 Delivered",
+                      },
+                    ].map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center space-x-2 relative"
+                      >
+                        <div className="absolute left-20 w-4 h-4 bg-white border-2 border-gray-300 rounded-full"></div>
+                        <div className="text-sm text-gray-500 ml-8">
+                          {item.date}
+                        </div>
+                        <div
+                          className="flex-1 h-8 px-6 rounded-md flex items-center justify-center text-xs text-gray-500 font-medium"
+                          style={{ backgroundColor: item.color }}
+                        >
+                          {item.activity}
+                        </div>
+                        <div className="flex space-x-1">
+                          <button className="p-1">
+                            <i className="fas fa-ellipsis-v"></i>
+                          </button>
+                          <button className="p-1">
+                            <i className="fas fa-ellipsis-v"></i>
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           {/* Recent Conversations Card */}
           <div className="max-w-sm mx-auto mt-10 p-4 bg-white rounded-lg shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Recent Conversations</h2>
-            <div className="relative mb-4">
-              <input
-                type="text"
-                placeholder="Type here..."
-                className="w-full p-2 border rounded-md"
+            <div className="flex items-center justify-between">
+              <h2 className="font-bold text-gray-600 mb-2">Recent Conversations</h2>
+              <FontAwesomeIcon
+                icon={isConversationsExpanded ? faCaretUp : faCaretDown}
+                className="cursor-pointer text-gray-600"
+                onClick={toggleConversationsExpand}
               />
-              <div className="absolute right-2 top-2 flex space-x-2">
-                <button className="p-1">
-                  <FontAwesomeIcon icon={faFilter} size="md" />
-                </button>
-                <button className="p-1">
-                  <FontAwesomeIcon icon={faSort} size="md" />
-                </button>
-              </div>
             </div>
-            <div className="space-y-4 h-64 overflow-y-auto scroll-mx-6">
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">John Doe</div>
-                <div className="text-sm text-gray-600">Hey, how are you?</div>
-                <div className="text-xs text-gray-500">2023-10-01 10:30 AM</div>
-              </div>
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">Jane Smith</div>
-                <div className="text-sm text-gray-600">
-                  Can we reschedule our meeting?
+
+            {isConversationsExpanded && (
+              <>
+                <div className="relative mb-4">
+                  <input
+                    type="text"
+                    placeholder="Type here..."
+                    className="w-full p-2 border rounded-md"
+                  />
+                  <div className="absolute right-2 top-2 flex space-x-2">
+                    <button className="p-1">
+                      <FontAwesomeIcon icon={faFilter} size="md" />
+                    </button>
+                    <button className="p-1">
+                      <FontAwesomeIcon icon={faSort} size="md" />
+                    </button>
+                  </div>
                 </div>
-                <div className="text-xs text-gray-500">2023-10-01 09:15 AM</div>
-              </div>
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">Alice Johnson</div>
-                <div className="text-sm text-gray-600">
-                  Don't forget about the deadline tomorrow.
+                <div className="space-y-4 h-64 overflow-y-auto scroll-mx-6">
+                  {[
+                    {
+                      name: "John Doe",
+                      message: "Hey, how are you?",
+                      date: "2023-10-01 10:30 AM",
+                    },
+                    {
+                      name: "Jane Smith",
+                      message: "Can we reschedule our meeting?",
+                      date: "2023-10-01 09:15 AM",
+                    },
+                    {
+                      name: "Alice Johnson",
+                      message: "Don't forget about the deadline tomorrow.",
+                      date: "2023-09-30 04:45 PM",
+                    },
+                    {
+                      name: "Bob Brown",
+                      message: "I will send you the documents by EOD.",
+                      date: "2023-09-30 02:30 PM",
+                    },
+                    {
+                      name: "Charlie Davis",
+                      message: "Let's catch up over coffee.",
+                      date: "2023-09-29 11:00 AM",
+                    },
+                    {
+                      name: "David Wilson",
+                      message: "Are you available for a call?",
+                      date: "2023-09-28 03:20 PM",
+                    },
+                    {
+                      name: "Emma Thomas",
+                      message: "Please review the attached document.",
+                      date: "2023-09-27 01:10 PM",
+                    },
+                    {
+                      name: "Frank Harris",
+                      message: "Meeting has been postponed.",
+                      date: "2023-09-26 05:00 PM",
+                    },
+                  ].map((conversation, index) => (
+                    <div key={index} className="p-2 bg-gray-100 rounded">
+                      <div className="font-semibold">{conversation.name}</div>
+                      <div className="text-sm text-gray-600">
+                        {conversation.message}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {conversation.date}
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-xs text-gray-500">2023-09-30 04:45 PM</div>
-              </div>
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">Bob Brown</div>
-                <div className="text-sm text-gray-600">
-                  I'll send you the documents by EOD.
-                </div>
-                <div className="text-xs text-gray-500">2023-09-30 02:30 PM</div>
-              </div>
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">Charlie Davis</div>
-                <div className="text-sm text-gray-600">
-                  Let's catch up over coffee.
-                </div>
-                <div className="text-xs text-gray-500">2023-09-29 11:00 AM</div>
-              </div>
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">David Wilson</div>
-                <div className="text-sm text-gray-600">
-                  Are you available for a call?
-                </div>
-                <div className="text-xs text-gray-500">2023-09-28 03:20 PM</div>
-              </div>
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">Emma Thomas</div>
-                <div className="text-sm text-gray-600">
-                  Please review the attached document.
-                </div>
-                <div className="text-xs text-gray-500">2023-09-27 01:10 PM</div>
-              </div>
-              <div className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold">Frank Harris</div>
-                <div className="text-sm text-gray-600">
-                  Meeting has been postponed.
-                </div>
-                <div className="text-xs text-gray-500">2023-09-26 05:00 PM</div>
-              </div>
-            </div>
+              </>
+            )}
           </div>
         </div>
       </div>

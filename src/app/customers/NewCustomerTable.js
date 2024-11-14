@@ -116,7 +116,7 @@ const NewCustomerTable = () => {
   useEffect(() => {
     const fetchCustomerData = async () => {
       try {
-        const response = await fetch("http://13.200.242.122:8080/api/CustomerList/1");
+        const response = await fetch("https://favcrm.softwareexato.com/api/CustomerList/1");
         const result = await response.json();
         if (result.message === "Request success") {
           const formattedData = result.data.map((item) => {

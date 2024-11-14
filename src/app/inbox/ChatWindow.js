@@ -11,7 +11,7 @@ const ChatWindow = ({ customerId,refreshChat }) => {
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await fetch(`http://13.200.242.122:8080/api/CustomerDetails/${customerId}`);
+        const response = await fetch(`https://favcrm.softwareexato.com/api/CustomerDetails/${customerId}`);
         const result = await response.json();
 
         if (result.message === "request success" && result.data.customerEmails) {
@@ -24,15 +24,17 @@ const ChatWindow = ({ customerId,refreshChat }) => {
             timestamp: new Date(email.DateTime),
             isNote: email.notes.length > 0,
             username: `${result.data.FirstName} ${result.data.LastName}`,
-            notes: email.notes.map(note => ({
-              title: "Note",
+            notes: email.notes
+            .map(note => ({
+              title: note.Title,
               text: note.Note,
               time: new Date(note.DateTime).toLocaleTimeString(),
               date: new Date(note.DateTime).toLocaleDateString(),
               timestamp: new Date(note.DateTime),
               username: `${result.data.FirstName} ${result.data.LastName}`
             }))
-          }));
+            .sort((a, b) => a.timestamp - b.timestamp) // Sort notes by timestamp within each message
+        }));
 
           const sortedMessages = formattedMessages.sort((a, b) => a.timestamp - b.timestamp);
           setMessages(sortedMessages);
