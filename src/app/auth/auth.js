@@ -16,23 +16,32 @@ async function getStore(query) {
 
     console.log("Store data received from server:", storeData);
 
-    // Save the store ID in localStorage
-    if (storeData.store_id) {
-      localStorage.setItem("store_id", storeData.store_id);
-      console.log("Store ID saved to localStorage:", storeData.store_id);
-    }
+    const { access_token: AccessToken, context, user } = storeData;
 
+    const StoreHash = context.split("/")[1];
+    const CustomerEmail = user?.email;
+
+    const reqData = {
+      StoreHash,
+      AccessToken,
+      CustomerEmail,
+    };
     // Send the store data to the external API for further processing
-    await axios.post(
-      "https://favcrm.softwareexato.com/api/StoreImapDetails",
-      storeData,
+    const data = await axios.post(
+      "https://favcrm.softwareexato.com/api/StoreSettings",
+      reqData,
       {
         headers: {
           "Content-Type": "application/json",
-          Authorization: "Bearer YOUR_API_TOKEN", // Replace with actual token if required
+          // Authorization: "Bearer YOUR_API_TOKEN",
         },
       }
     );
+
+    if (data) {
+      localStorage.setItem("store_id", data.StoreId);
+      console.log("Store ID saved to localStorage:", data.StoreId);
+    }
 
     console.log("Store data sent to favcrm API successfully");
   } catch (error) {
