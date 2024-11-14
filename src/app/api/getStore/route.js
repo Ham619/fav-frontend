@@ -4,9 +4,8 @@ import BigCommerce from "node-bigcommerce";
 // Initialize the BigCommerce instance with your credentials
 const bigCommerce = new BigCommerce({
   clientId: process.env.CLIENT_ID,
-  accessToken: process.env.ACCESS_TOKEN,
   secret: process.env.CLIENT_SECRET,
-  storeHash: process.env.STORE_HASH,
+  callback:"https://fav-frontend-eight.vercel.app/auth",
   responseType: "json",
   apiVersion: "v3",
 });
