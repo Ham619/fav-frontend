@@ -38,6 +38,8 @@ async function getStore(query) {
       }
     );
 
+    console.log("data",data)
+
     if (data) {
       localStorage.setItem("store_id", data.StoreId);
       console.log("Store ID saved to localStorage:", data.StoreId);
