@@ -42,7 +42,7 @@ async function getStore(query) {
 
     if (data) {
       localStorage.setItem("store_id", savedData.StoreId);
-      console.log("Store ID saved to localStorage:", savedData.StoreId);
+      console.log("Store ID saved to localStorage:", savedData);
     }
 
     console.log("Store data sent to favcrm API successfully");
