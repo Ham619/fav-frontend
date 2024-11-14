@@ -37,12 +37,12 @@ async function getStore(query) {
         },
       }
     );
-    const savedData = data.data;
+    const savedData = data.data.data;
     console.log("data",savedData);
 
     if (data) {
       localStorage.setItem("store_id", savedData.StoreId);
-      console.log("Store ID saved to localStorage:", savedData);
+      console.log("Store ID saved to localStorage:", savedData.StoreId);
     }
 
     console.log("Store data sent to favcrm API successfully");
