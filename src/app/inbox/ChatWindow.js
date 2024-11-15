@@ -92,8 +92,8 @@ const MessageBubble = ({ type, subject, text, time, date }) => (
           <FontAwesomeIcon icon={faUser} className="text-gray-700" />
         </div>
         <div className="bg-white p-4 rounded-lg max-w-xs shadow-md">
-          <div className="font-bold text-sm mb-1">{subject}</div>
-          <div>{text}</div>
+          <div className="font-bold text-sm mb-1 text-black">{subject}</div>
+          <div className="text-black">{text}</div>
           <div className="text-xs text-gray-500 mt-2">{`${time} ${date}`}</div>
         </div>
       </div>
@@ -101,8 +101,8 @@ const MessageBubble = ({ type, subject, text, time, date }) => (
     {type === 'sent' && (
       <div className="flex items-center justify-end">
         <div className="bg-green-100 p-4 rounded-lg max-w-xs shadow-md">
-          <div className="font-bold text-sm mb-1">{subject}</div>
-          <div>{text}</div>
+          <div className="font-bold text-sm mb-1 text-black">{subject}</div>
+          <div className="text-black">{text}</div>
           <div className="text-xs text-gray-500 mt-2">{`${time} ${date}`}</div>
         </div>
         <div className="w-12 h-12 rounded-full bg-gray-200 ml-4 flex items-center justify-center">
@@ -115,9 +115,9 @@ const MessageBubble = ({ type, subject, text, time, date }) => (
 
 const Notes = ({ username, title, text, time, date }) => (
   <div className="flex flex-col items-start bg-yellow-100 p-4 rounded-lg shadow-md mb-4">
-    <div className="text-sm font-bold mb-1">{username}</div>
-    <div className="text-md font-semibold mb-2">{title}</div>
-    <p>{text}</p>
+    <div className="text-sm font-bold mb-1 text-black">{username}</div>
+    <div className="text-md font-semibold mb-2 text-black">{title}</div>
+    <p className="text-black">{text}</p>
     <div className="text-xs text-gray-500">{`${time} ${date}`}</div>
   </div>
 );

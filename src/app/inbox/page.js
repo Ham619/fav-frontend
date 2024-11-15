@@ -37,7 +37,7 @@ import {
   saveNote,
   fetchCustomerAttribute,
 } from "../utils/api";
-import {formatDate,formatDate1} from "../utils/dateFormat"
+import { formatDate, formatDate1 } from "../utils/dateFormat";
 
 export default function Inbox() {
   const [customers, setCustomers] = useState([]);
@@ -106,7 +106,8 @@ export default function Inbox() {
       try {
         setLoading(true);
         const result = await fetchCustomers();
-        setCustomers(Array.isArray(result.data) ? result.data : [result.data]);
+        setCustomers(Array.isArray(result.data) ? result.data : []);
+        console.log("customersArray", customers);
       } catch (error) {
         console.error("Error fetching customers:", error);
       } finally {
@@ -127,6 +128,7 @@ export default function Inbox() {
       return customerAttributesArray;
     } catch (error) {
       console.error("Error fetching customer attributes:", error);
+      // setCustomerAttribute({}); // Fallback to empty object if fetch fails
     } finally {
       setLoading(false);
     }
@@ -228,8 +230,6 @@ export default function Inbox() {
     }
   };
 
-
-
   const [isExpanded, setIsExpanded] = useState(true);
 
   const toggleExpand = () => {
@@ -262,7 +262,7 @@ export default function Inbox() {
       {/* Top Bar with Customers and Profile Overview */}
       <div className="flex justify-between items-center p-1 mt-4 ml-4">
         <div>
-          <h1 className="text-2xl font-bold">Customers</h1>
+          <h1 className="text-2xl font-bold text-black">Customers</h1>
           <p className="text-[#279a63] text-base">Profile Overview</p>
         </div>
       </div>
@@ -289,7 +289,7 @@ export default function Inbox() {
           </div>
 
           {/* Dropdown and Icons Section Card */}
-          <div className=" p-4 rounded-lg shadow-md">
+          <div className="p-4 rounded-lg shadow-md">
             <div className="flex items-center justify-between mb-4">
               <select
                 className="text-gray-700 border-gray-400 px-2 py-1 focus:outline-none rounded-md"
@@ -308,11 +308,11 @@ export default function Inbox() {
                 </span>
               </div>
             </div>
-            <div></div>
-            {/* Conditionally render skeleton or customer data */}
+
+            {/* Conditionally render skeleton, customer data, or no-customer message */}
             {loading ? (
               <Skeleton active paragraph={{ rows: 5 }} />
-            ) : (
+            ) : customers.length > 0 ? (
               customers.map((customer, index) => (
                 <div
                   key={index}
@@ -320,25 +320,29 @@ export default function Inbox() {
                   onClick={() => handleCustomerClick(customer)}
                 >
                   <div className="flex items-center">
-                    <div className="w-12 h-12">
+                    <div className="w-12 h-12 text-black">
                       <FontAwesomeIcon icon={faUser} size="lg" />
                     </div>
 
                     <div className="ml-4 mr-2 flex-wrap">
-                      <h2 className="font-semibold">
-                        {customer.FirstName} {customer.LastName}
+                      <h2 className="font-semibold text-black">
+                        {customer?.FirstName} {customer?.LastName}
                       </h2>
                       <p className="text-[0.5rem] text-gray-500 mb-1 text-wr">
-                        {customer.EmailId}
+                        {customer?.EmailId}
                       </p>
                       <p className="text-[0.65rem] text-gray-500">
-                        {customer.FirstName} is a long-time customer with a
+                        {customer?.FirstName} is a long-time customer with a
                         history of high-value purchases.
                       </p>
                     </div>
                   </div>
                 </div>
               ))
+            ) : (
+              <div className="text-gray-500 text-center mt-4">
+                No customer available
+              </div>
             )}
           </div>
         </div>
@@ -419,7 +423,7 @@ export default function Inbox() {
                 </label>
                 <input
                   type="text"
-                  className="w-full border border-gray-300 p-2 rounded"
+                  className="w-full border border-gray-300 p-2 rounded text-black"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
                 />
@@ -430,7 +434,7 @@ export default function Inbox() {
                 </label>
                 <div
                   contentEditable
-                  className="w-full border border-gray-300 p-2 rounded min-h-[100px]"
+                  className="w-full border border-gray-300 p-2 rounded min-h-[100px] text-black"
                   placeholder="Write Email Here..."
                   ref={editorRef}
                   onInput={(e) => setBody(e.currentTarget.textContent)}
@@ -441,7 +445,7 @@ export default function Inbox() {
                   {/* Bold Button */}
                   <button
                     className={`p-2 rounded ${
-                      isBoldActive ? "bg-gray-300" : ""
+                      isBoldActive ? "bg-gray-300" : "text-black"
                     }`}
                     onClick={() => toggleFormatting("bold")}
                   >
@@ -450,7 +454,7 @@ export default function Inbox() {
                   {/* Italic Button */}
                   <button
                     className={`p-2 rounded ${
-                      isItalicActive ? "bg-gray-300" : ""
+                      isItalicActive ? "bg-gray-300" : "text-black"
                     }`}
                     onClick={() => toggleFormatting("italic")}
                   >
@@ -459,7 +463,7 @@ export default function Inbox() {
                   {/* Underline Button */}
                   <button
                     className={`p-2 rounded ${
-                      isUnderlineActive ? "bg-gray-300" : ""
+                      isUnderlineActive ? "bg-gray-300" : "text-black"
                     }`}
                     onClick={() => toggleFormatting("underline")}
                   >
@@ -468,7 +472,7 @@ export default function Inbox() {
                   {/* Strikethrough Button */}
                   <button
                     className={`p-2 rounded ${
-                      isStrikethroughActive ? "bg-gray-300" : ""
+                      isStrikethroughActive ? "bg-gray-300" : "text-black"
                     }`}
                     onClick={() => toggleFormatting("strikeThrough")}
                   >
@@ -476,7 +480,7 @@ export default function Inbox() {
                   </button>
                   {/* Link Button */}
                   <button
-                    className="p-2 rounded text-gray-500"
+                    className="p-2 rounded text-black"
                     onClick={() => insertLink()}
                   >
                     <FontAwesomeIcon icon={faLink} size="md" />
@@ -505,13 +509,13 @@ export default function Inbox() {
               <input
                 type="text"
                 placeholder="Write Title..."
-                className="w-full px-3 py-2 mb-2 bg-nextSilver border-none outline-none"
+                className="w-full px-3 py-2 mb-2 bg-nextSilver border-none outline-none text-black"
                 value={noteTitle} // Use the new title state
                 onChange={(e) => setNoteTitle(e.target.value)}
               />
               <div
                 contentEditable
-                className="w-full px-3 py-1 h-32 bg-customYellow border-none outline-none"
+                className="w-full px-3 py-1 h-32 bg-customYellow border-none outline-none text-black"
                 placeholder="Type Something Here..."
                 onInput={(e) => setNote(e.currentTarget.innerText)}
               ></div>
@@ -584,12 +588,12 @@ export default function Inbox() {
         <div className="w-1/5 overflow-scroll h-[87vh]">
           {" "}
           {/* Ensure full height for scrolling */}
-          {customerAttribute ? (
+          {selectedCustomer ? (
             <div className="mb-6 p-4 rounded-lg shadow-lg bg-white sticky top-0 z-10">
               {/* Display selected customer details */}
               <div className="flex justify-start items-center mb-4">
                 <h2 className="text-blue-600 text-lg font-bold">
-                  {customerAttribute.FirstName} {selectedCustomer?.LastName}
+                  {customerAttribute?.FirstName} {selectedCustomer?.LastName}
                 </h2>
 
                 <div className="flex space-x-2 ml-3">
@@ -607,8 +611,8 @@ export default function Inbox() {
                   <span className="w-4 h-4 mr-2 text-gray-600">
                     <FontAwesomeIcon icon={faEnvelope} size="sm" />
                   </span>
-                  <p className="text-sm pt-1">
-                    {customerAttribute.EmailId || "N/A"}
+                  <p className="text-sm pt-1 text-black">
+                    {customerAttribute?.EmailId || "N/A"}
                   </p>
                 </div>
 
@@ -616,8 +620,8 @@ export default function Inbox() {
                   <span className="w-4 h-4 mr-2 text-gray-600">
                     <FontAwesomeIcon icon={faPhone} size="sm" />
                   </span>
-                  <p className="text-sm pt-1">
-                    {customerAttribute.Phone || "N/A"}
+                  <p className="text-sm pt-1 text-black">
+                    {customerAttribute?.Phone || "N/A"}
                   </p>
                 </div>
 
@@ -625,14 +629,16 @@ export default function Inbox() {
                   <span className="w-4 h-4 mr-2 text-gray-600">
                     <FontAwesomeIcon icon={faMoneyBill} size="sm" />
                   </span>
-                  <p className="text-sm pt-1">
-                    Total Spent: ${customerAttribute.TotalOrderValue || "0"}
+                  <p className="text-sm pt-1 text-black">
+                    Total Spent: ${customerAttribute?.TotalOrderValue || "0"}
                   </p>
                 </div>
               </div>
             </div>
           ) : (
-            <p className="text-gray-500">Select a customer to view details</p>
+            <p className="text-gray-500 mb-2 ml-1">
+              Select a customer to view details
+            </p>
           )}
           {/* Middle Card: Attributes */}
           <div className="mb-6 p-4 rounded-lg shadow-lg bg-white">
@@ -647,71 +653,80 @@ export default function Inbox() {
 
             {isExpanded && (
               <>
-                {/* Search Box */}
-                <input
-                  type="text"
-                  placeholder="Type here"
-                  className="w-full h-7 p-2 mb-3 text-sm border rounded-sm border-gray-300 focus:outline-none"
-                />
-                {/* Attributes List */}
-                <div className="space-y-2 text-sm pl-2 pr-2 text-left">
-                  <div className="flex justify-between">
-                    <p>Email Status:</p>
-                    <p>{customerAttribute.EmailStatus || "N/A"}</p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>First Seen:</p>
-                    <p>
-                      {customerAttribute.FirstSeenDate
-                        ? formatDate1(customerAttribute.FirstSeenDate)
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>Signed Up:</p>
-                    <p>{customerAttribute.SignedUp || "N/A"}</p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>First Contacted:</p>
-                    <p>
-                      {customerAttribute.FirstContacted
-                        ? formatDate(customerAttribute.FirstContacted)
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>Last Contacted:</p>
-                    <p>
-                      {customerAttribute.LastContacted
-                        ? formatDate(customerAttribute.LastContacted)
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>First Order Placed:</p>
-                    <p>
-                      {customerAttribute.FirstOrderPlaced
-                        ? formatDate1(customerAttribute.FirstOrderPlaced)
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>Last Order Placed:</p>
-                    <p>
-                      {customerAttribute.LastOrderPlaced
-                        ? formatDate1(customerAttribute.LastOrderPlaced)
-                        : "N/A"}
-                    </p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>Total Order Value:</p>
-                    <p>{customerAttribute.TotalOrderValue || "N/A"}</p>
-                  </div>
-                  <div className="flex justify-between">
-                    <p>Total Order Quantity:</p>
-                    <p>{customerAttribute.TotalOrderQuantity || "N/A"}</p>
-                  </div>
-                </div>
+                {Object.keys(customerAttribute || {}).length === 0 ? (
+                  // Show this message when no customer is selected
+                  <p className="text-gray-500 text-center mt-4">
+                    Select a customer to view its attributes
+                  </p>
+                ) : (
+                  <>
+                    {/* Search Box */}
+                    <input
+                      type="text"
+                      placeholder="Type here"
+                      className="w-full h-7 p-2 mb-3 text-sm border rounded-sm border-gray-300 focus:outline-none text-black"
+                    />
+                    {/* Attributes List */}
+                    <div className="space-y-2 text-sm pl-2 pr-2 text-left text-black">
+                      <div className="flex justify-between">
+                        <p>Email Status:</p>
+                        <p>{customerAttribute.EmailStatus || "N/A"}</p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>First Seen:</p>
+                        <p>
+                          {customerAttribute.FirstSeenDate
+                            ? formatDate1(customerAttribute?.FirstSeenDate)
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>Signed Up:</p>
+                        <p>{customerAttribute.SignedUp || "N/A"}</p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>First Contacted:</p>
+                        <p>
+                          {customerAttribute?.FirstContacted
+                            ? formatDate(customerAttribute?.FirstContacted)
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>Last Contacted:</p>
+                        <p>
+                          {customerAttribute?.LastContacted
+                            ? formatDate(customerAttribute?.LastContacted)
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>First Order Placed:</p>
+                        <p>
+                          {customerAttribute?.FirstOrderPlaced
+                            ? formatDate1(customerAttribute?.FirstOrderPlaced)
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>Last Order Placed:</p>
+                        <p>
+                          {customerAttribute?.LastOrderPlaced
+                            ? formatDate1(customerAttribute?.LastOrderPlaced)
+                            : "N/A"}
+                        </p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>Total Order Value:</p>
+                        <p>{customerAttribute?.TotalOrderValue || "N/A"}</p>
+                      </div>
+                      <div className="flex justify-between">
+                        <p>Total Order Quantity:</p>
+                        <p>{customerAttribute?.TotalOrderQuantity || "N/A"}</p>
+                      </div>
+                    </div>
+                  </>
+                )}
               </>
             )}
           </div>
@@ -735,7 +750,7 @@ export default function Inbox() {
                   <input
                     type="text"
                     placeholder="Search Order"
-                    className="w-full p-2 mb-4 text-sm border rounded-sm border-gray-300 h-7 focus:outline-none"
+                    className="w-full p-2 mb-4 text-sm border rounded-sm border-gray-300 h-7 focus:outline-none text-black"
                   />
                   <div className="flex items-center space-x-1 ml-2">
                     <span className="flex p-[0.4rem] items-center justify-center w-7 h-7 text-gray-500 bg-white border border-gray-300 rounded">
@@ -747,7 +762,7 @@ export default function Inbox() {
                   </div>
                 </div>
                 {/* Table-like Structure */}
-                <div className="text-sm border border-gray-300">
+                <div className="text-sm border border-gray-300 text-black">
                   {/* Header Row */}
                   <div className="grid grid-cols-3 gap-4 font-semibold bg-gray-200 p-2 border">
                     <p>Date</p>
@@ -803,7 +818,7 @@ export default function Inbox() {
                   <input
                     type="text"
                     placeholder="Type here..."
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-2 border rounded-md text-black"
                   />
                   <div className="absolute right-2 top-2 flex space-x-2">
                     <button className="p-1">
@@ -881,7 +896,9 @@ export default function Inbox() {
           {/* Recent Conversations Card */}
           <div className="max-w-sm mx-auto mt-10 p-4 bg-white rounded-lg shadow-md">
             <div className="flex items-center justify-between">
-              <h2 className="font-bold text-gray-600 mb-2">Recent Conversations</h2>
+              <h2 className="font-bold text-gray-600 mb-2">
+                Recent Conversations
+              </h2>
               <FontAwesomeIcon
                 icon={isConversationsExpanded ? faCaretUp : faCaretDown}
                 className="cursor-pointer text-gray-600"
@@ -895,7 +912,7 @@ export default function Inbox() {
                   <input
                     type="text"
                     placeholder="Type here..."
-                    className="w-full p-2 border rounded-md"
+                    className="w-full p-2 border rounded-md text-black"
                   />
                   <div className="absolute right-2 top-2 flex space-x-2">
                     <button className="p-1">
@@ -950,7 +967,7 @@ export default function Inbox() {
                     },
                   ].map((conversation, index) => (
                     <div key={index} className="p-2 bg-gray-100 rounded">
-                      <div className="font-semibold">{conversation.name}</div>
+                      <div className="font-semibold text-black">{conversation.name}</div>
                       <div className="text-sm text-gray-600">
                         {conversation.message}
                       </div>

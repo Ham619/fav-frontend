@@ -65,8 +65,6 @@ export default function Auth({ query }) {
         }
       }
     }
-
-    router.push('/');
     fetchAndRedirect();
   }, [query, router]);
 
