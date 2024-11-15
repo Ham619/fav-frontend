@@ -1,5 +1,3 @@
-// utils/api.js
-
 const BASE_URL = "https://favcrm.softwareexato.com/api";
 
 const headers = {
@@ -7,15 +5,21 @@ const headers = {
   Accept: "application/json",
 };
 
-// Fetch customers list
+// Fetch customers list with dynamic storeId
 export const fetchCustomers = async () => {
-  const response = await fetch(`${BASE_URL}/CustomerList/1`, {
-    method: "GET",
-    headers,
-  });
-  if (!response.ok) throw new Error("Failed to fetch customers");
-  return response.json();
-};
+    const storeId = localStorage.getItem("store_id");
+  
+    if (!storeId) {
+      throw new Error("Store ID not found in local storage.");
+    }
+  
+    const response = await fetch(`${BASE_URL}/CustomerList/${storeId}`, {
+      method: "GET",
+      headers,
+    });
+    if (!response.ok) throw new Error("Failed to fetch customers");
+    return response.json();
+  };
 
 // Fetch orders by customer ID
 export const fetchOrders = async (customerId) => {

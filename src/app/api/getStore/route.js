@@ -1,4 +1,3 @@
-// src/app/api/getStore/route.js
 import BigCommerce from "node-bigcommerce";
 
 // Initialize the BigCommerce instance with your credentials

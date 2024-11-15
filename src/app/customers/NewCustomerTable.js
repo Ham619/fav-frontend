@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import { Table, Tag, Skeleton } from "antd";
+import { fetchCustomers } from "../utils/api";
 
 const columns = [
   {
@@ -116,8 +117,11 @@ const NewCustomerTable = () => {
   useEffect(() => {
     const fetchCustomerData = async () => {
       try {
-        const response = await fetch("https://favcrm.softwareexato.com/api/CustomerList/1");
-        const result = await response.json();
+        // const response = await fetch(`https://favcrm.softwareexato.com/api/CustomerList/${storeId}`);
+        // const result = await response.json();
+
+        const result = await fetchCustomers();
+
         if (result.message === "Request success") {
           const formattedData = result.data.map((item) => {
             const formatDate = (date) =>
