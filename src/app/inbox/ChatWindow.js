@@ -3,16 +3,18 @@
 import { useState, useEffect, useRef } from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faUser, faUserTie } from '@fortawesome/free-solid-svg-icons';
+import { fetchCustomerAttribute } from '../utils/api';
 
-const ChatWindow = ({ customerId,refreshChat }) => {
+const ChatWindow = ({ customerId,refreshChat,viewMode }) => {
   const [messages, setMessages] = useState([]);
   const chatContainerRef = useRef(null);
 
   useEffect(() => {
     const fetchMessages = async () => {
       try {
-        const response = await fetch(`https://favcrm.softwareexato.com/api/CustomerDetails/${customerId}`);
-        const result = await response.json();
+        // const response = await fetch(`https://favcrm.softwareexato.com/api/CustomerDetails/${customerId}`);
+        // const result = await response.json();
+        const result = await fetchCustomerAttribute(customerId);
 
         if (result.message === "request success" && result.data.customerEmails) {
           const formattedMessages = result.data.customerEmails.map(email => ({
@@ -54,11 +56,33 @@ const ChatWindow = ({ customerId,refreshChat }) => {
   }, [messages]);
 
   return (
+    // <div className="h-[70vh] mb-2 flex flex-col p-4">
+    //   <div ref={chatContainerRef} className="flex-grow overflow-y-auto bg-gray-100 rounded-lg p-6">
+    //     <div className="chat-container space-y-4">
+    //       {messages.map((msg, index) => (
+    //         <div key={index}>
+    //           <ChatMessage
+    //             type={msg.type}
+    //             text={msg.text}
+    //             time={msg.time}
+    //             date={msg.date}
+    //             username={msg.username}
+    //             subject={msg.subject}
+    //           />
+    //           {msg.notes.map((note, idx) => (
+    //             <Notes key={`note-${index}-${idx}`} {...note} />
+    //           ))}
+    //         </div>
+    //       ))}
+    //     </div>
+    //   </div>
+    // </div>
     <div className="h-[70vh] mb-2 flex flex-col p-4">
-      <div ref={chatContainerRef} className="flex-grow overflow-y-auto bg-gray-100 rounded-lg p-6">
-        <div className="chat-container space-y-4">
-          {messages.map((msg, index) => (
-            <div key={index}>
+    <div ref={chatContainerRef} className="flex-grow overflow-y-auto bg-gray-100 rounded-lg p-6">
+      <div className="chat-container space-y-4">
+        {messages.map((msg, index) => (
+          <div key={index}>
+            {viewMode.includes("Conversation") && (
               <ChatMessage
                 type={msg.type}
                 text={msg.text}
@@ -67,14 +91,16 @@ const ChatWindow = ({ customerId,refreshChat }) => {
                 username={msg.username}
                 subject={msg.subject}
               />
-              {msg.notes.map((note, idx) => (
+            )}
+            {viewMode.includes("Notes") &&
+              msg.notes.map((note, idx) => (
                 <Notes key={`note-${index}-${idx}`} {...note} />
               ))}
-            </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
     </div>
+  </div>
   );
 };
 

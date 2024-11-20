@@ -110,16 +110,13 @@ const columns = [
   },
 ];
 
-const NewCustomerTable = () => {
+const NewCustomerTable = (searchQuery) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchCustomerData = async () => {
       try {
-        // const response = await fetch(`https://favcrm.softwareexato.com/api/CustomerList/${storeId}`);
-        // const result = await response.json();
-
         const result = await fetchCustomers();
 
         if (result.message === "Request success") {
@@ -159,11 +156,20 @@ const NewCustomerTable = () => {
     fetchCustomerData();
   }, []);
 
+   // Filter data based on the search query (first name or last name)
+   const filteredData = data.filter(
+    (item) =>
+      item.firstName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.lastName?.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+
   return (
     <Skeleton loading={loading} active>
       <Table
         columns={columns}
         dataSource={data}
+        // dataSource={filteredData}
         pagination={{ pageSize: 10 }}
         scroll={{ x: 'max-content', y: 400 }}
         style={{ width: "100%" }}
