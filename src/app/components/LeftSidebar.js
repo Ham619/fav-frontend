@@ -90,10 +90,10 @@ const LeftSidebar = ({ customers, loading, handleCustomerClick }) => {
                 </div>
 
                 <div className="ml-4 mr-2 flex-wrap">
-                  <h2 className="font-semibold text-black">
+                  <h2 className="font-inter font-medium text-[#00000099]">
                     {customer?.FirstName} {customer?.LastName}
                   </h2>
-                  <p className="text-[0.5rem] text-gray-500 mb-1 text-wr">
+                  <p className="text-[0.5rem] font-inter font-medium text-gray-500 mb-1 text-wr">
                     {customer?.EmailId}
                   </p>
                   <p className="text-[0.65rem] text-gray-500">

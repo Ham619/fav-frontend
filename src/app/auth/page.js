@@ -1,5 +1,3 @@
-// app/auth/page.js
-import { cookies } from 'next/headers';  // To handle cookies if needed
 import Auth from './auth';  // The client-side component
 
 // Server-side function to fetch query parameters

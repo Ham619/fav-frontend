@@ -14,7 +14,7 @@ const AttributesCard = ({ customerAttribute }) => {
     <div className="mb-6 p-4 rounded-lg shadow-lg bg-white">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-gray-600 mb-1 pl-1">Attributes</h3>
+        <h3 className="font-medium text-gray-600 mb-1 pl-1">Attributes</h3>
         <FontAwesomeIcon
           icon={isExpanded ? faCaretUp : faCaretDown}
           className="cursor-pointer text-gray-600"
@@ -40,7 +40,7 @@ const AttributesCard = ({ customerAttribute }) => {
               />
 
               {/* Attributes List */}
-              <div className="space-y-2 text-sm pl-2 pr-2 text-left text-black">
+              <div className="space-y-2 text-sm pl-2 pr-2 text-left text-black font-inter font-normal">
                 <div className="flex justify-between">
                   <p>Email Status:</p>
                   <p>{customerAttribute.EmailStatus || "N/A"}</p>

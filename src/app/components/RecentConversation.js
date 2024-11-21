@@ -25,7 +25,7 @@ const RecentConversationsCard = () => {
     <div className="max-w-sm mx-auto mt-8 mb-8 p-4 bg-white rounded-lg shadow-md">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-gray-600 mb-2 mr-2">Recent Conversations</h2>
+        <h2 className="font-medium text-gray-600 mb-2 mr-2">Recent Conversations</h2>
         <FontAwesomeIcon
           icon={isExpanded ? faCaretUp : faCaretDown}
           className="cursor-pointer text-gray-600"
@@ -57,7 +57,7 @@ const RecentConversationsCard = () => {
           <div className="space-y-4 h-64 overflow-y-auto">
             {conversations.map((conversation, index) => (
               <div key={index} className="p-2 bg-gray-100 rounded">
-                <div className="font-semibold text-black">{conversation.name}</div>
+                <div className="font-semibold text-base text-black">{conversation.name}</div>
                 <div className="text-sm text-gray-600">{conversation.message}</div>
                 <div className="text-xs text-gray-500">{conversation.date}</div>
               </div>

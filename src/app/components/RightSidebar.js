@@ -15,21 +15,21 @@ const RightSidebar = ({ selectedCustomer, customerAttribute, orders }) => {
         <div className="mb-6 p-4 rounded-lg shadow-lg bg-white sticky top-0 z-10">
           {/* Display selected customer details */}
           <div className="flex justify-start items-center mb-4">
-            <h2 className="text-blue-600 text-lg font-bold">
+            <h2 className="text-[#476BA6] text-lg font-medium">
               {customerAttribute?.FirstName} {selectedCustomer?.LastName}
             </h2>
 
             <div className="flex space-x-2 ml-3">
-              <button className="px-2 py-1 bg-green-600 text-white rounded-sm text-xs font-semibold">
+              <button className="px-2 py-1 font-inter bg-[#6cbc74] text-white rounded-sm text-xs font-semibold shadow-md border-b-2 border-gray-300">
                 Loyal
               </button>
-              <button className="px-2 py-1 bg-yellow-500 text-white rounded-sm text-xs font-semibold">
+              <button className="px-2 py-1 font-inter bg-[#ff9f0e] text-white rounded-sm text-xs font-semibold shadow-md border-b-2 border-gray-300">
                 VIP
               </button>
             </div>
           </div>
 
-          <div className="space-y-2">
+          <div className="space-y-2 font-inter font-normal">
             <div className="flex items-center">
               <span className="w-4 h-4 mr-2 text-gray-600">
                 <FontAwesomeIcon icon={faEnvelope} size="sm" />

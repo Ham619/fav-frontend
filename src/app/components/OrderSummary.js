@@ -13,7 +13,7 @@ export default function OrderSummaryCard({ orders }) {
     <div className="p-4 rounded-lg shadow-lg bg-white">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <h3 className="font-bold text-gray-600 mb-1 pl-1">Order Summary</h3>
+        <h3 className=" text-gray-600 mb-1 pl-1 font-medium">Order Summary</h3>
         <FontAwesomeIcon
           icon={isExpanded ? faCaretUp : faCaretDown}
           className="cursor-pointer text-gray-600"
@@ -44,7 +44,7 @@ export default function OrderSummaryCard({ orders }) {
           {/* Table-like Structure */}
           <div className="text-xs border border-gray-300 text-black">
             {/* Header Row */}
-            <div className="grid grid-cols-3 gap-4 font-semibold bg-gray-200 p-2 border">
+            <div className="grid grid-cols-3 gap-4 font-medium bg-gray-200 p-2 border">
               <p>Date</p>
               <p>Order ID</p>
               <p>Status</p>
@@ -56,7 +56,7 @@ export default function OrderSummaryCard({ orders }) {
                   key={index}
                   className="grid grid-cols-3 gap-2 mb-1 border-t border-gray-300"
                 >
-                  <p className="p-1 bg-white text-[0.7rem]">
+                  <p className="p-1 bg-white text-[0.7rem] font-medium">
                     {order?.date_created
                       ? new Date(order.date_created).toLocaleDateString()
                       : "N/A"}
@@ -65,7 +65,7 @@ export default function OrderSummaryCard({ orders }) {
                     #{order?.id}
                   </p>
                   <p
-                    className={`p-1 mr-1 text-[0.55rem] bg-white font-semibold leading-tight ${
+                    className={`p-1 mr-1 text-[0.55rem] font-semibold bg-white font-semibold leading-tight ${
                       order?.status === "Completed"
                         ? "text-green-600"
                         : "text-yellow-600"

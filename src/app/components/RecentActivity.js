@@ -48,7 +48,7 @@ const RecentActivity = () => {
   return (
     <div className="max-w-sm mx-auto bg-white p-4 rounded-lg shadow-md mt-8">
       <div className="flex items-center justify-between">
-        <h2 className="font-bold text-gray-600 mb-2">Recent Activity</h2>
+        <h2 className="font-medium text-gray-600 mb-2">Recent Activity</h2>
         <FontAwesomeIcon
           icon={isRecentActivityExpanded ? faCaretUp : faCaretDown}
           className="cursor-pointer text-gray-600"
@@ -82,12 +82,12 @@ const RecentActivity = () => {
                 }
               >
                 <div className="flex items-center">
-                  <div className="text-gray-500 w-20 text-[0.7rem] font-semibold">
+                  <div className="text-gray-500 w-20 text-[0.7rem] font-mediumt-">
                     {activity.date}
                   </div>
                   <div className="flex-grow flex items-center">
                     <div
-                      className={`flex-grow h-8 ${activity.color} rounded-md flex items-center justify-center text-[0.6rem] text-gray-500 font-semibold px-3 py-2`}
+                      className={`flex-grow h-8 ${activity.color} rounded-md flex items-center justify-center text-[0.6rem] text-gray-500 font-medium px-3 py-2`}
                     >
                       {activity.activity}
                     </div>
